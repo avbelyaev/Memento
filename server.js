@@ -14,11 +14,7 @@ function start(route, handle) {
         var pathname = url.parse(rq.url).pathname;
         console.log("request recieved: " + pathname);
 
-        route(pathname, handle);
-
-        rsp.writeHead(200, {"Content-Type": "text/plain"});
-        rsp.write("hello world");
-        rsp.end();
+        route(pathname, handle, rq, rsp);
     }
 
     http.createServer(onRequest).listen(port);

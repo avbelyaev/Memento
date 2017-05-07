@@ -12,7 +12,9 @@
   "dependencies": {
     "express": "~4.15.2",
     "mongodb": "~2.2.26",
-    "coffeescript": "~1.12.5"
+    "coffeescript": "~1.12.5",
+    "formidable": "latest",
+    "mv": "~2.1.1"
   },
   "devDependencies": {
     "nodemon": "~1.11.0"
