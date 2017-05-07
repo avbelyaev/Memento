@@ -35,7 +35,6 @@ function start(rq, rsp) {
 
 function upload(rq, rsp) {
     console.log("rq handler for 'upload' was called");
-    console.log(rq);
 
     var form = new formidable.IncomingForm();
     form.parse(rq, function (err, fields, files) {

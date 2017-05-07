@@ -6,18 +6,14 @@ const MongoClient   = require('mongodb').MongoClient;
 const app           = express();
 const http          = require("http");
 const url           = require("url");
+const config        = require("./config");
 
-const port = 8888;
-
-function start(route, handle) {
+function start(route, handlers) {
     function onRequest(rq, rsp) {
-        var pathname = url.parse(rq.url).pathname;
-        console.log("request recieved: " + pathname);
-
-        route(pathname, handle, rq, rsp);
+        route(rq, rsp, handlers);
     }
 
-    http.createServer(onRequest).listen(port);
+    http.createServer(onRequest).listen(config.port);
     console.log("server has started");
 }
 
