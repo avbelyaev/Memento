@@ -7,6 +7,10 @@ const app           = express();
 const http          = require("http");
 const url           = require("url");
 const config        = require("./config");
+const mongoose          = require('mongoose');
+
+var db = mongoose.connection;
+
 
 function start(route, handlers) {
     function onRequest(rq, rsp) {
@@ -15,12 +19,12 @@ function start(route, handlers) {
 
     http.createServer(onRequest).listen(config.port);
     console.log("server has started");
-}
 
-function say(word) {
-    console.log("hello " + word);
+    db.on('error', console.error.bind(console, 'connection error:'));
+    db.once('open', function() {
+        console.log("database has been connected");
+    });
 }
 
 
 exports.start = start;
-exports.say = say;

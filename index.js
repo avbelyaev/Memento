@@ -6,6 +6,7 @@ const router            = require("./router");
 const requestHandlers   = require("./requestHandlers");
 const utils             = require("./utils");
 
+
 var handle = [
     {
         path: "/",
@@ -31,5 +32,4 @@ var handle = [
 
 
 server.start(router.route, handle);
-//server.say("xxx");
 

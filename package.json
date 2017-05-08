@@ -15,7 +15,8 @@
     "coffeescript": "~1.12.5",
     "formidable": "latest",
     "mv": "~2.1.1",
-    "body-parser": "~1.17.1"
+    "body-parser": "~1.17.1",
+    "mongoose": "~4.9.8"
   },
   "devDependencies": {
     "nodemon": "~1.11.0"
