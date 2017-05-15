@@ -60,7 +60,6 @@ function show(rq, rsp) {
 
     fs.readFile("./tmp/test.png", "binary", function (err, file) {
         if (err) {
-
             utils.respond(rsp, err + "\n", utils.STATUS_500, utils.CONTENT_TYPE_TEXT_PLAIN);
 
         } else {

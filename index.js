@@ -5,9 +5,10 @@ const server            = require("./server");
 const router            = require("./router");
 const requestHandlers   = require("./requestHandlers");
 const utils             = require("./utils");
+const db                = require('./db');
 
 
-var handle = [
+var handlers = [
     {
         path: "/",
         method: utils.METHOD_GET,
@@ -30,6 +31,6 @@ var handle = [
     }
 ];
 
-
-server.start(router.route, handle);
+var dbInstance = db.connect();
+server.start(router.route, handlers);
 
