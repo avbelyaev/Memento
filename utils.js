@@ -11,6 +11,7 @@ function respond(rsp, content, status, contentType) {
 
 exports.respond = respond;
 exports.STATUS_200 = 200;
+exports.STATUS_404 = 404;
 exports.STATUS_500 = 500;
 exports.CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 exports.CONTENT_TYPE_TEXT_HTML = "text/html";

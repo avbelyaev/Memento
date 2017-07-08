@@ -28,7 +28,7 @@ function route(rq, rsp, handlers) {
     } else {
         console.log("no request handler found for: " + path);
         utils.respond(
-            rsp, "404 Not found", utils.STATUS_200, utils.CONTENT_TYPE_TEXT_PLAIN);
+            rsp, "404 Not found", utils.STATUS_404, utils.CONTENT_TYPE_TEXT_PLAIN);
     }
 }
 
