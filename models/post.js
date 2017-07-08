@@ -3,29 +3,18 @@
  */
 var mongoose      = require('mongoose');
 var Schema        = mongoose.Schema;
+var ObjId       = Schema.Types.ObjectId;
 var db;//        = require('././db');
 
-var postSchema = mongoose.Schema({
-    _id:                Number,
-    title:              String,
-    meme_id: {
-        type:           Number,
-        ref:            'meme'
-    },
-    user_id: {
-        type:           Number,
-        ref:            'user'
-    },
-    text: {
-        top:            String,
-        mid:            String,
-        bot:            String
-    },
-    upload_date:        String, //TODO change to Date
-    rating:             Number,
-    tags: [{
-        tag:            String
-    }]
+var postSchema = Schema({
+    _id: Number,
+    title: String,
+    meme_id: { type: Number, ref: 'meme' },
+    user_id: { type: Number, ref: 'user' },
+    text: { type: Number },
+    create_datetime: { type: Date, default: Date.now() },
+    rating: Number,
+    tags: [{ tag: String }]
 });
 
 var post = mongoose.model('post', postSchema);
