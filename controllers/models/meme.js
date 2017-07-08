@@ -23,13 +23,14 @@ exports.findAll = function () {
     memeModel.find({}, entriesFoundCallback);
 };
 
-var findByAttr = function(attrName, attrVal) {
+var findByAttr = function(attrName, attrVal, callback) {
     console.log('findByAttr "' + attrName + '==' + attrVal + '"');
 
     var query = {};
     query[attrName] = attrVal;
 
     memeModel.find(query, entriesFoundCallback);
+    callback();
 };
 
 //TODO cant use findById for now since i have explicit _id
@@ -45,8 +46,21 @@ exports.findById = function(id, stub) {
     });
 };
 
-exports.findById = function (_id) {
-    findByAttr("_id", _id);
+exports.findById = function (_id, callback) {
+    var query = {};
+    query["_id"] = _id;
+
+    memeModel.find(query, function (err, memes) {
+        if (err) throw err;
+
+        console.log(memes.length + ' entries have been found');
+        //this callback is fired only if we get here == entry has been found
+        //callback is a function to be passed from rqHandler
+        //is composes response and 'memes' from here == 'memesFound' in rqHndlr
+        callback(memes);
+        return memes;
+    });
+
 };
 
 exports.findByTitle = function(_title) {

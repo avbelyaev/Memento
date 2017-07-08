@@ -78,9 +78,12 @@ function showMeme(rq, rsp) {
     var q = urlParts.query;
     console.log('requesting meme by id: ' + q.id);
 
-    rsp.writeHead(200, {"Content-Type:": "text/plain"});
-    rsp.write("found: " + meme.findById(q.id));
-    rsp.end();
+    meme.findById(q.id, function (memeFound) {
+        rsp.writeHead(200, {"Content-Type:": "text/plain"});
+        rsp.write("found: " + memeFound);
+        rsp.end();
+    });
+
 }
 
 
