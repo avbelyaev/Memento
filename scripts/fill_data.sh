@@ -17,10 +17,9 @@ ins_meme() {
         _id:                    $1,
         title:                  '$2',
         image_data: {
-            img:                '',
+            data:                '',
             content_type:       ''
         },
-        upload_date:            '',
         rating:                 0
     })"
 }
@@ -52,11 +51,11 @@ ins_post() {
 
 echo ">>> inserting data"
 
-ins_user 1 "anthony" "anthonybel"
-ins_user 2 "johnny" "walker18"
-ins_user 3 "bilbo" "swaggins"
-ins_user 4 "angela" "mercy"
-ins_user 5 "han" "soloyolo"
+#ins_user 1 "anthony" "anthonybel"
+#ins_user 2 "johnny" "walker18"
+#ins_user 3 "bilbo" "swaggins"
+#ins_user 4 "angela" "mercy"
+#ins_user 5 "han" "soloyolo"
 
 ins_meme 1 "keanu"
 ins_meme 2 "social awkward penguin"
@@ -65,9 +64,9 @@ ins_meme 4 "sponge bob imagination"
 ins_meme 5 "one cannot simply"
 ins_meme 6 "hello there obi-van"
 
-ins_post 1 "first post" 1 1 "that feeling when..."
-ins_post 2 "tried to make meme generator" 2 1 "have no idea for memes"
-ins_post 3 "got a girlfriend" 2 1 "no idea what to do next"
-ins_post 4 "learning node" 3 2 "totally forgot how to c++"
-ins_post 5 "tryin to destroy dat ring" 5 3 "y cant we use gimlis axe"
-ins_post 6 "a wild meme appears" 6 5 "buongiorno signor kenobi"
+#ins_post 1 "first post" 1 1 "that feeling when..."
+#ins_post 2 "tried to make meme generator" 2 1 "have no idea for memes"
+#ins_post 3 "got a girlfriend" 2 1 "no idea what to do next"
+#ins_post 4 "learning node" 3 2 "totally forgot how to c++"
+#ins_post 5 "tryin to destroy dat ring" 5 3 "y cant we use gimlis axe"
+#ins_post 6 "a wild meme appears" 6 5 "buongiorno signor kenobi"

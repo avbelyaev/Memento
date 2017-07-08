@@ -2,7 +2,7 @@
  * Created by anthony on 08.07.17.
  */
 var db  = require('../db');
-var meme = require('../../models/meme');
+var meme = require('././controllers/models/meme');
 
 function testGetMemeByTitle() {
     var title = "Welcome to the feelsbar. Here to listen and give advice."

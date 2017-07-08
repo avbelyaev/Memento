@@ -10,35 +10,48 @@ var memeSchema = Schema({
     title: String,
     //TODO change to Buffer
     //https://stackoverflow.com/questions/29780733/store-an-image-in-mongodb-using-node-js-express-and-mongoose
-    image_data:     { img: String, content_type: String },
+    image_data:     { data: String, content_type: String },
     upload_date:    { type: Date, default: Date.now() },
     rating:         { type: Number, default: 0 }
 });
 
-const meme = mongoose.model('meme', memeSchema);
+const memeModel = mongoose.model('meme', memeSchema);
 
-exports.findByAttr = function(attrName, attrVal) {
+exports.findAll = function () {
+    console.log('findAll memes');
+
+    memeModel.find({}, entriesFoundCallback);
+};
+
+var findByAttr = function(attrName, attrVal) {
     console.log('findByAttr "' + attrName + '==' + attrVal + '"');
 
     var query = {};
     query[attrName] = attrVal;
 
-    meme.find(query, entriesFoundCallback);
+    memeModel.find(query, entriesFoundCallback);
 };
 
-exports.findById = function(_id) {
+//TODO cant use findById for now since i have explicit _id
+exports.findById = function(id, stub) {
     console.log('findById "' + _id + '"');
+    if ('number' !== typeof _id)
+        console.log('wrong _id type!');
 
-    meme.findById(_id, function (err, m) {
+    memeModel.findById(_id, function (err, m) {
         if (err) throw err;
 
         return m;
     });
 };
 
+exports.findById = function (_id) {
+    findByAttr("_id", _id);
+};
+
 exports.findByTitle = function(_title) {
     console.log('findByTitle "' + _title + '"');
-    meme.find({title: _title}, entriesFoundCallback);
+    memeModel.find({title: _title}, entriesFoundCallback);
 };
 
 exports.findByUploadDateBetween = function(startDate, endDate) {
@@ -50,17 +63,17 @@ exports.findByUploadDateBetween = function(startDate, endDate) {
             '$lte': endDate
         }
     };
-    meme.find(query, entriesFoundCallback);
+    memeModel.find(query, entriesFoundCallback);
 };
 
 exports.save = function(_title, _image_data) {
-    console.log('attempting to save img data with title "' + _title + '"');
+    console.log('attempting to save data data with title "' + _title + '"');
 
-    var m = new meme;
+    var m = new memeModel;
     m.title = _title;
     m.image_data = _image_data;
     
-    meme.save(function (err, m1) {
+    memeModel.save(function (err, m1) {
         if (err) throw err;
 
         console.log('meme "' + _title + '" has been saved');
@@ -73,3 +86,5 @@ var entriesFoundCallback = function (err, memes) {
     console.log(memes.length + ' entries have been found');
     return memes;
 };
+
+exports.findByAttr = findByAttr;
