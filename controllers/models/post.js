@@ -18,3 +18,15 @@ var postSchema = Schema({
 });
 
 var post = mongoose.model('post', postSchema);
+
+function stub1() {
+
+}
+
+function stub2() {
+
+}
+
+module.exports = {
+    stub1, stub2
+};
