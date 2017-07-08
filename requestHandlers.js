@@ -7,6 +7,8 @@ const querystring   = require("querystring");
 const fs            = require("fs");
 const formidable    = require("formidable");
 const mv            = require("mv");
+const meme          = require('./controllers/models/meme');
+const url           = require('url');
 
 
 
@@ -48,7 +50,7 @@ function upload(rq, rsp) {
 
         rsp.writeHead(200, {"Content-Type": "text/html"});
         rsp.write("received image:<br/>");
-        rsp.write("<img src='/show' />");
+        rsp.write("<data src='/show' />");
         rsp.end();
     })
 }
@@ -61,15 +63,25 @@ function show(rq, rsp) {
     fs.readFile("./tmp/test.png", "binary", function (err, file) {
         if (err) {
             utils.respond(rsp, err + "\n", utils.STATUS_500, utils.CONTENT_TYPE_TEXT_PLAIN);
-
-        } else {
-            rsp.writeHead(200, {"Content-Type": "image/png"});
-            rsp.write(file, "binary");
-            rsp.end();
+            return;
         }
+
+        rsp.writeHead(200, {"Content-Type": "image/png"});
+        rsp.write(file, "binary");
+        rsp.end();
+
     });
 }
 
+function showMeme(rq, rsp) {
+    var urlParts = url.parse(rq.url, true);
+    var q = urlParts.query;
+    console.log('requesting meme by id: ' + q.id);
+
+    rsp.writeHead(200, {"Content-Type:": "text/plain"});
+    rsp.write("found: " + meme.findById(q.id));
+    rsp.end();
+}
 
 
 function stub() {
@@ -94,3 +106,4 @@ function stub() {
 exports.start = start;
 exports.upload = upload;
 exports.show = show;
+exports.showMeme = showMeme;

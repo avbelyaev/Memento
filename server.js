@@ -4,10 +4,9 @@
 const express       = require('express');
 const http          = require("http");
 const url           = require("url");
-const config        = require("./config/config");
 
 
-function start(route, handlers) {
+function start(route, handlers, config) {
     var onRequest = function(rq, rsp) {
         route(rq, rsp, handlers);
     }
