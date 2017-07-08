@@ -1,0 +1,33 @@
+sudo apt-get install nodejs
+sudo apt-get install npm
+npm install npm-cli
+//npm-cli for webstorm: /usr/lib/nodejs/npm
+
+npm init
+npm install --save express mongodb mongoose
+npm install --save-dev nodemon mocha
+npm install --save formidable
+npm install --save body-parser
+
+
+npm run dev
+
+
+mongo
+db.help()
+show dbs
+use mydb
+db.getCollectionNames()
+db.memes.find()
+db.movie.insert({"name":"tutorials point"})
+
+
+//chrome app: postman
+
+
+http://www.nodebeginner.ru/#server-side-javascript
+https://habrahabr.ru/company/ruvds/blog/321104/
+
+https://habrahabr.ru/company/cit/blog/259987/
+
+https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
