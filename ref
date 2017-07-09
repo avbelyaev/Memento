@@ -1,13 +1,11 @@
 sudo apt-get install nodejs
 sudo apt-get install npm
 npm install npm-cli
-//npm-cli for webstorm: /usr/lib/nodejs/npm
+//npm-cli.js for webstorm: /usr/lib/nodejs/npm
 
 npm init
-npm install --save express mongodb mongoose
+npm install --save express mongoose formidable body-parser
 npm install --save-dev nodemon mocha
-npm install --save formidable
-npm install --save body-parser
 
 
 npm run dev

@@ -6,8 +6,7 @@
   "author": "anthony",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "express": "~4.15.2",
-    "mongodb": "~2.2.26",
+    "express": "~4.15.3",
     "formidable": "latest",
     "mv": "~2.1.1",
     "body-parser": "~1.17.1",
