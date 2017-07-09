@@ -18,10 +18,16 @@ const memeModel = mongoose.model('meme', memeSchema);
 
 
 
-exports.findAll = function () {
+exports.findAll = function (callback) {
     console.log('findAll memes');
 
-    memeModel.find({}, entriesFoundCallback);
+    memeModel.find({}, function (err, memes) {
+        if (err) throw err;
+
+        console.log(memes.length + ' entries have been found');
+
+        callback(memes);
+    });
 };
 
 var findByAttr = function(attrName, attrVal, callback) {
@@ -31,7 +37,6 @@ var findByAttr = function(attrName, attrVal, callback) {
     query[attrName] = attrVal;
 
     memeModel.find(query, entriesFoundCallback);
-    callback();
 };
 
 //TODO cant use findById for now since i have explicit _id
@@ -97,11 +102,11 @@ exports.save = function(_title, _image_data) {
     });
 };
 
-var entriesFoundCallback = function (err, memes) {
+var entriesFoundCallback = function (err, memes, callback) {
     if (err) throw err;
 
     console.log(memes.length + ' entries have been found');
-    return memes;
+    callback();
 };
 
 exports.findByAttr = findByAttr;

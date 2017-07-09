@@ -4,8 +4,8 @@
 const mongoose          = require('mongoose');
 
 
-function connect(config) {
-    mongoose.connect(config.mongoUrl, { config: { autoIndex: false } });
+function connect(cfg) {
+    mongoose.connect(cfg.mongoUrl, { config: { autoIndex: false } });
     var db = mongoose.connection;
 
     db.on('error', function(err) {

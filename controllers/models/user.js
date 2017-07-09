@@ -20,6 +20,7 @@ userSchema.virtual('full_name').get(function () {
     return this.first_name + ' ' + this.last_name;
 });
 
+//https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/mongoose
 userSchema.virtual('url').get(function () {
     //TODO what to do with this rels
     return 'rel/user/' + this._id;
