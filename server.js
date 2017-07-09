@@ -5,9 +5,6 @@ const http          = require("http");
 
 
 function start(app, config) {
-    /*var onRequest = function(rq, rsp) {
-        route(rq, rsp, handlers);
-    }*/
 
     http.createServer(app).listen(config.port, function () {
         console.log('server has started. port ' + config.port);
@@ -15,6 +12,7 @@ function start(app, config) {
 
     process.on('SIGINT', function () {
         console.log('terminating server');
+        process.exit();
     });
 }
 

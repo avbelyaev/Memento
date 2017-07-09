@@ -7,11 +7,11 @@ const utils             = require("./utils");
 const db                = require('./db');
 const dbConfig          = require('./config/dbConfig');
 const serverConfig      = require('./config/serverConfig');
-const router              = require('./controllers/routes/router');
+const router            = require('./controllers/routes/router');
 
 var app = express();
 
-app.use('/', router);
+app.use('', router);
 
 var dbInst = db.connect(dbConfig);
 
@@ -19,3 +19,5 @@ server.start(app, serverConfig);
 
 
 module.exports = app;
+
+//TODO Grunt?

@@ -1,8 +1,10 @@
 /**
  * Created by anthony on 16.05.17.
  */
-const mongoose        = require('mongoose');
-const Schema          = mongoose.Schema;
+const mongoose          = require('mongoose');
+const Schema            = mongoose.Schema;
+const validatorUtils    = require('../utils/validatorUtils');
+
 
 var memeSchema = Schema({
     _id: Number,
@@ -18,8 +20,8 @@ const memeModel = mongoose.model('meme', memeSchema);
 
 
 
-exports.findAll = function (callback) {
-    console.log('findAll memes');
+var findAll = function (callback) {
+    console.log('memes findAll');
 
     memeModel.find({}, function (err, memes) {
         if (err) throw err;
@@ -30,51 +32,34 @@ exports.findAll = function (callback) {
     });
 };
 
-var findByAttr = function(attrName, attrVal, callback) {
-    console.log('findByAttr "' + attrName + '==' + attrVal + '"');
+var findOneById = function (id, callback) {
+    console.log('memes findOneById "' + id + '"');
+    var idVal = id;
 
-    var query = {};
-    query[attrName] = attrVal;
+    if ('string' === typeof id && validatorUtils.isValidId(id)) {
+        try {
+            idVal = parseInt(id);
+        } catch (e) {
+            console.error('error while casting id "' + id + '" to int');
+            callback({});
+            return;
+        }
+    } else {
+        console.error('error. invalid id: ' + id);
+        callback({});
+        return;
+    }
 
-    memeModel.find(query, entriesFoundCallback);
+    findByAttr('_id', idVal, callback);
 };
 
-//TODO cant use findById for now since i have explicit _id
-exports.findById = function(id, stub) {
-    console.log('findById "' + _id + '"');
-    if ('number' !== typeof _id)
-        console.log('wrong _id type!');
+var findByTitle = function(title, callback) {
+    console.log('memes findByTitle "' + title + '"');
 
-    memeModel.findById(_id, function (err, m) {
-        if (err) throw err;
-
-        return m;
-    });
+    findByAttr('title', title, callback);
 };
 
-exports.findById = function (_id, callback) {
-    var query = {};
-    query["_id"] = _id;
-
-    memeModel.find(query, function (err, memes) {
-        if (err) throw err;
-
-        console.log(memes.length + ' entries have been found');
-        //this callback is fired only if we get here == entry has been found
-        //callback is a function to be passed from rqHandler
-        //is composes response and 'memes' from here == 'memesFound' in rqHndlr
-        callback(memes);
-        return memes;
-    });
-
-};
-
-exports.findByTitle = function(_title) {
-    console.log('findByTitle "' + _title + '"');
-    memeModel.find({title: _title}, entriesFoundCallback);
-};
-
-exports.findByUploadDateBetween = function(startDate, endDate) {
+var findByUploadDateBetween = function(startDate, endDate, callback) {
     console.log('findByUploadDateBetween "' + startDate + '" and "' + endDate + '"');
 
     var query = {
@@ -83,12 +68,18 @@ exports.findByUploadDateBetween = function(startDate, endDate) {
             '$lte': endDate
         }
     };
-    memeModel.find(query, entriesFoundCallback);
+
+    memeModel.find(query, function (err, memes) {
+        if (err) throw err;
+
+        console.log(memes.length + ' entries have been found');
+        callback();
+    });
 };
 
 
 
-exports.save = function(_title, _image_data) {
+var save = function(memeInst) {
     console.log('attempting to save data data with title "' + _title + '"');
 
     var m = new memeModel;
@@ -102,11 +93,27 @@ exports.save = function(_title, _image_data) {
     });
 };
 
-var entriesFoundCallback = function (err, memes, callback) {
-    if (err) throw err;
 
-    console.log(memes.length + ' entries have been found');
-    callback();
+var findByAttr = function(attrName, attrVal, callback) {
+    console.log('memes findByAttr "' + attrName + ':' + attrVal + '"');
+
+    var query = {};
+    query[attrName] = attrVal;
+
+    memeModel.find(query, function (err, memes) {
+        if (err) throw err;
+
+        if (memes) {
+            callback(memes);
+        } else {
+            callback({});
+        }
+    });
 };
 
-exports.findByAttr = findByAttr;
+
+
+exports.findAll = findAll;
+exports.findOneById = findOneById;
+exports.findByTitle = findByTitle;
+exports.save = save;

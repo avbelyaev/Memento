@@ -3,22 +3,28 @@
  */
 const memeModel     = require('./models/meme');
 
-//this module works with meme model
 
 exports.findAll = function (rq, rsp) {
-    console.log('findAll');
     memeModel.findAll(function (memes) {
-        console.log('memes found');
         rsp.send(memes);
-        //rsp.writeHead(200, {"Content-Type:": "text/plain"});
-        //rsp.write(memes);
-        //rsp.end();
     });
 };
 
-exports.findOneByAttr = function (rq, rsp) {
-
+exports.findOneById = function (rq, rsp) {
+    var id = rq.params.id;
+    memeModel.findOneById(id, function (singleMeme) {
+        rsp.send(singleMeme);
+    });
 };
+
+exports.findByTitle = function (rq, rsp) {
+    var title = rq.params.title;
+    memeModel.findByTitle(title, function (memes) {
+        rsp.send(memes);
+    });
+};
+
+
 
 // CREATE
 exports.meme_create_get = function (rq, rsp) {
