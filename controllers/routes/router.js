@@ -13,9 +13,17 @@ router.get('/', function (rq, rsp) {
     rsp.send('root');
 });
 
-router.get(rels.REL_MEME + ":id", memeController.findOneById);
+router.get(rels.REL_MEME + ':id', memeController.findOneById);
+
+//https://stackoverflow.com/a/41521743/4504720
+router.post(rels.REL_MEME + 'create', memeController.save);
+
+router.put(rels.REL_MEME + 'update/:id', memeController.update);
+
+router.delete(rels.REL_MEME + 'delete/:id', memeController.delete);
 
 router.get(rels.REL_MEMES, memeController.findAll);
+
 
 
 

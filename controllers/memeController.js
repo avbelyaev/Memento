@@ -24,31 +24,29 @@ exports.findByTitle = function (rq, rsp) {
     });
 };
 
+exports.save = function (rq, rsp) {
+    rq.on('data', function (chunk) {
+        console.log('chunk of data: ' + chunk);
+    });
 
+    rq.on('end', function () {
+        console.log('end of data');
+    });
 
-// CREATE
-exports.meme_create_get = function (rq, rsp) {
+    rsp.send('TBD');
 
+    /*memeModel.save(newMeme, function (meme) {
+        rsp.send('meme saved');
+    })*/
 };
 
-exports.meme_create_post = function (rq, rsp) {
-    rsp.send('meme create POST');
+
+exports.update = function (rq, rsp) {
+    const id = rq.params.id;
+    rsp.send('NOT IMPLEMENTED');
 };
 
-//UPDATE
-exports.meme_update_get = function (rq, rsp) {
-    rsp.send('meme create POST');
-};
-
-exports.meme_update_post = function (rq, rsp) {
-    rsp.send('meme create POST');
-};
-
-//DELETE
-exports.meme_delete_get = function (rq, rsp) {
-    rsp.send('meme create POST');
-};
-
-exports.meme_delete_post = function (rq, rsp) {
-    rsp.send('meme create POST');
+exports.delete = function (rq, rsp) {
+    const id = rq.params.id;
+    rsp.send('NOT IMPLEMENTED');
 };
