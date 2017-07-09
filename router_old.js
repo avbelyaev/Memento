@@ -5,7 +5,6 @@ const url           = require("url");
 const utils         = require("./utils");
 const querystring   = require("querystring");
 
-const FUNCTION = "function";
 
 function getPathname(rq) {
     return url.parse(rq.url).pathname;
@@ -21,7 +20,7 @@ function route(rq, rsp, handlers) {
            method.toLowerCase() === obj.method.toLowerCase();
     })[0];
 
-    if (handler && FUNCTION === typeof handler.controller) {
+    if (handler && 'function' === typeof handler.controller) {
 
         handler.controller(rq, rsp);
 

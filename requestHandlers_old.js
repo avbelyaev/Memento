@@ -60,6 +60,7 @@ function upload(rq, rsp) {
 function show(rq, rsp) {
     console.log("rq handler for 'show' was called");
 
+    //TODO change to fs.createReadStream()
     fs.readFile("./tmp/test.png", "binary", function (err, file) {
         if (err) {
             utils.respond(rsp, err + "\n", utils.STATUS_500, utils.CONTENT_TYPE_TEXT_PLAIN);
