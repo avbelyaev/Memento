@@ -6,14 +6,24 @@ var Schema          = mongoose.Schema;
 var db;//        = require('././db');
 
 var userSchema = Schema({
-    _id:        Number,
-    name:       String,
-    login:      String,
-    email:      String,
-    type:       String
+    _id: Number,
+    first_name: String,
+    last_name: String,
+    login: String,
+    email: String,
+    type: String
 });
 
 var userModel = mongoose.model('user', userSchema);
+
+userSchema.virtual('full_name').get(function () {
+    return this.first_name + ' ' + this.last_name;
+});
+
+userSchema.virtual('url').get(function () {
+    //TODO what to do with this rels
+    return 'rel/user/' + this._id;
+});
 
 function create(_login, _name) {
     userModel.create({

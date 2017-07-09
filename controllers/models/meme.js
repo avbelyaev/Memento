@@ -3,7 +3,6 @@
  */
 const mongoose        = require('mongoose');
 const Schema          = mongoose.Schema;
-var db;//        = require('././db');
 
 var memeSchema = Schema({
     _id: Number,
@@ -16,6 +15,8 @@ var memeSchema = Schema({
 });
 
 const memeModel = mongoose.model('meme', memeSchema);
+
+
 
 exports.findAll = function () {
     console.log('findAll memes');
@@ -79,6 +80,8 @@ exports.findByUploadDateBetween = function(startDate, endDate) {
     };
     memeModel.find(query, entriesFoundCallback);
 };
+
+
 
 exports.save = function(_title, _image_data) {
     console.log('attempting to save data data with title "' + _title + '"');
