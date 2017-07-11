@@ -1,10 +1,10 @@
 /**
  * Created by anthony on 16.05.17.
  */
-const mongoose          = require('mongoose');
+const mongoose = require('mongoose');
 
 
-function connect(cfg) {
+function connect(cfg, callback) {
     mongoose.connect(cfg.mongoUrl, { config: { autoIndex: false } });
     var db = mongoose.connection;
 
@@ -15,7 +15,7 @@ function connect(cfg) {
     db.on('open', function() {
         console.log("db connection has been set");
 
-        return db;
+        callback(db);
     });
 }
 

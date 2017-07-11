@@ -49,6 +49,12 @@ ins_post() {
     })"
 }
 
+ins_ctr() {
+    mongo $db_name --eval "db.counters.insert({
+        _id: 'meme_id'
+    })"
+}
+
 echo ">>> inserting data"
 
 #ins_user 1 "anthony" "anthonybel"
@@ -63,6 +69,8 @@ ins_meme 3 "man of a culture"
 ins_meme 4 "sponge bob imagination"
 ins_meme 5 "one cannot simply"
 ins_meme 6 "hello there obi-van"
+
+ins_ctr
 
 #ins_post 1 "first post" 1 1 "that feeling when..."
 #ins_post 2 "tried to make meme generator" 2 1 "have no idea for memes"

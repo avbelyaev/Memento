@@ -17,4 +17,4 @@ mongo --eval "db.getSiblingDB('$db_name')"
 create "users"
 create "memes"
 create "posts"
-
+create "counters"

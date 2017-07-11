@@ -2,11 +2,11 @@
  * Created by anthony on 09.07.17.
  */
 
-exports.REL_MEMES = "/memes/";
-exports.REL_MEME = "/meme/";
+exports.MEMES = "/memes/";
+exports.MEME = "/meme/";
 
-exports.REL_POSTS = "/posts/";
+exports.POSTS = "/posts/";
 exports.REL_POST = "/post/";
 
-exports.REL_USERS = "/users/";
+exports.USERS = "/users/";
 exports.REL_USER = "/user/";
