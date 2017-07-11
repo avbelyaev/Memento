@@ -84,7 +84,7 @@ var findByUploadDateBetween = function(startDate, endDate, callback) {
 };
 
 
-
+/*
 var create = function(rqBody, callback) {
     var reason = '', retVal = {};
     console.log('meme create. validating');
@@ -130,6 +130,39 @@ var create = function(rqBody, callback) {
             }
         });
     });
+};*/
+
+var create = function (rqBody, callback) {
+    var reason = '', retVal = {};
+    var m = memeModel(rqBody);
+
+    return m.validate()
+        .then(function(e1) {
+            //asd
+        }, function () {
+            console.log('meme valeed');
+
+            return main.connectToDb();
+        })
+        .then(function (db) {
+            console.log('db connected');
+
+            return getNextId(db, 'meme_id')
+        }, function (e2) {
+
+        })
+        .then(function (result) {
+            console.log('next id evaluated');
+
+            rqBody['id'] = result;
+            return memeModel.create(rqBody);
+        })
+        .then(function (newMeme) {
+            console.log('created meme');
+            retVal = newMeme ? newMeme : {};
+
+            callback(reason, retVal);
+        });
 };
 
 
