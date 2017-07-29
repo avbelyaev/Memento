@@ -1,7 +1,7 @@
 /**
  * Created by anthony on 09.07.17.
  */
-const memeModel     = require('./models/meme');
+const memeModel     = require('../models/meme');
 const log           = require('winston');
 
 
@@ -44,8 +44,8 @@ exports.findAll = function (rq, rsp) {
 
 
 exports.findOneById = function (rq, rsp) {
-    log.info('meme ctrl findById');
     var id = rq.params.id;
+    log.info('meme ctrl findById ' + id);
 
     memeModel.findOneById(id, function (err, singleMeme) {
         if (err) {
@@ -95,25 +95,28 @@ exports.save = function (rq, rsp) {
         var rqBody;
         try {
             rqBody = JSON.parse(Buffer.concat(chunks));
-
-            memeModel.save(rqBody, function (err, meme) {
-                if (err) {
-                    modelError(err);
-                } else {
-
-                    if (meme) {
-                        ret = meme;
-                    } else {
-                        ret = null;
-                        status = 500;
-                    }
-                }
-                respond(rsp, status, ret);
-            });
-
         } catch (e) {
-            respond(rsp, 500, e);
+            respond(rsp, 400, e);
+            return;
         }
+
+        //its not in try-catch block since async exceptions
+        //cannot be handled in regular try-catch way
+        memeModel.save(rqBody, function (err, meme) {
+            if (err) {
+                modelError(err);
+            } else {
+
+                if (meme) {
+                    ret = meme;
+                    status = 201;
+                } else {
+                    ret = null;
+                    status = 500;
+                }
+            }
+            respond(rsp, status, ret);
+        });
     };
 
 
@@ -128,7 +131,42 @@ exports.save = function (rq, rsp) {
 
 exports.update = function (rq, rsp) {
     const id = rq.params.id;
-    rsp.send('NOT IMPLEMENTED');
+    log.info('meme ctrl update by id ' + id);
+    var chunks = [];
+
+    var onDataEnd = function () {
+        log.info('processing data_end event');
+
+        var rqBody;
+        try {
+            rqBody = JSON.parse(Buffer.concat(chunks));
+        } catch (e) {
+            respond(rsp, 400, e);
+            return;
+        }
+
+        memeModel.update(id, rqBody, function (err, meme) {
+            if (err) {
+                modelError(err);
+                log.error('code: ' + err.code);
+            } else {
+
+                if (meme) {
+                    ret = meme;
+                } else {
+                    ret = null;
+                    status = 500;
+                }
+            }
+            respond(rsp, status, ret);
+        })
+    };
+
+    rq.on('data', function (chunk) {
+        chunks.push(chunk);
+    });
+
+    rq.on('end', onDataEnd);
 };
 
 

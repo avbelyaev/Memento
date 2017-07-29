@@ -20,7 +20,8 @@ const memeSchema = Schema({
         content_type: { type: String, required: true },
     },
     upload_date: { type: Date, default: Date.now() },
-    rating: { type: Number, default: 0 }
+    rating: { type: Number, default: 0 },
+    is_active: {type: Boolean, default: true }
 });
 
 const counterSchema = Schema({
@@ -58,6 +59,25 @@ function dbConnError(callback) {
     errMsg = 'db connection err';
     log.error('meme model: ' + errMsg);
     callback(errMsg, null);
+}
+
+function validate(idVal, callback) {
+    var id;
+    if ('string' === typeof idVal && validatorUtils.isValidId(idVal)) {
+        try {
+            id = parseInt(idVal);
+        } catch (e) {
+            log.error('id cast error');
+            callback(e, null);
+            return;
+        }
+    } else {
+        errMsg = 'invalid id value/type: ' + idVal;
+        log.error(errMsg);
+        callback(errMsg, null);
+        return;
+    }
+    return id;
 }
 
 var findByAttr = function(attrName, attrVal, callback) {
@@ -124,7 +144,7 @@ var findOneById = function (id, callback) {
         dbConnError(callback);
     } else {
 
-        findByAttr('_idd', idVal, callback);
+        findByAttr('_id', idVal, callback);
     }
 };
 
@@ -195,7 +215,43 @@ var save = function (rqBody, callback) {
 };
 
 
+var update = function (idVal, rqBody, callback) {
+    log.info('meme model update by id ' + idVal);
+    var id = validate(idVal, callback);
+
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+        log.info('finding if meme to be updated exists');
+
+        memeModel
+            .findOne({_id: id})
+            .exec(function (err, existingMeme) {
+                if (err) {
+                    callback(new Error({code: 404}), null);
+                } else {
+                    if (existingMeme) {
+
+                        log.info('existing');
+
+                        memeModel
+                            .update({_id: id}, {$set: rqBody})
+                            .exec(function (err, updatedMeme) {
+                                log.info('updated');
+                                callback(errMsg, {});
+                            })
+                    } else {
+                        callback(new Error({code: 404}), null);
+                    }
+                }
+            });
+    }
+};
+
+
+
 exports.findAll = findAll;
 exports.findOneById = findOneById;
 exports.findByTitle = findByTitle;
 exports.save = save;
+exports.update = update;
