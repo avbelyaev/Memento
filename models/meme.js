@@ -3,8 +3,8 @@
  */
 const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
-const validatorUtils    = require('../utils/validatorUtils');
-const db                = require('../../db');
+const validatorUtils    = require('../controllers/utils/validatorUtils');
+const db                = require('../db');
 const log               = require('winston');
 
 
