@@ -3,20 +3,24 @@
  */
 const mongoose = require('mongoose');
 
+const STATE_ALREADY_CONNECTED = 1;
 
-function connect(cfg, callback) {
-    mongoose.connect(cfg.mongoUrl, { config: { autoIndex: false } });
+exports.connect = function(cfg) {
+    if (STATE_ALREADY_CONNECTED !== mongoose.connection.readyState) {
+        mongoose.connect(cfg.mongoUrl, {config: {autoIndex: false}});
+    }
+
     var db = mongoose.connection;
 
     db.on('error', function(err) {
-        console.log("error while trying to connect to db: " + err);
+        console.log("db connection err: " + err);
     });
 
     db.on('open', function() {
         console.log("db connection has been set");
-
-        callback(db);
     });
-}
+};
 
-exports.connect = connect;
+exports.isConnected = function () {
+    return STATE_ALREADY_CONNECTED === mongoose.connection.readyState;
+};

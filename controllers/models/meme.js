@@ -5,9 +5,10 @@ const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
 const db                = require('../../db');
+const log               = require('winston');
 
 
-var memeSchema = Schema({
+const memeSchema = Schema({
     _id: Number,
     title: {type: String, required: true },
     //TODO change to Buffer
@@ -22,13 +23,13 @@ var memeSchema = Schema({
     rating: { type: Number, default: 0 }
 });
 
-var counterSchema = Schema({
+const counterSchema = Schema({
     _id: { type: String, required: true},
     seq: { type: Number, default: 0}
 });
 
 memeSchema.pre('save', function (next) {
-    console.log('meme_id auto inc');
+    log.info('meme_id inc');
     var docBeingSaved = this;
 
 
@@ -39,7 +40,7 @@ memeSchema.pre('save', function (next) {
             if (err)
                 return next(err);
             docBeingSaved._id = counter.seq;
-            console.log('id: ' + docBeingSaved._id);
+            log.info('id: ' + docBeingSaved._id);
 
             next();
     });
@@ -51,48 +52,93 @@ const counter = mongoose.model('counter', counterSchema);
 
 
 
+var errMsg = null, ret = null;
 
-var findAll = function (callback) {
-    console.log('memes findAll');
+function dbConnError(callback) {
+    errMsg = 'db connection err';
+    log.error('meme model: ' + errMsg);
+    callback(errMsg, null);
+}
 
-    memeModel.find({}, function (err, memes) {
-        if (err) throw err;
+var findByAttr = function(attrName, attrVal, callback) {
+    log.info('memes findByAttr ' + attrName + ':' + attrVal + '');
 
-        console.log(memes.length + ' entries have been found');
+    var query = {};
+    query[attrName] = attrVal;
 
-        callback(memes ? memes : {});
+    memeModel.find(query, function (err, memes) {
+        if (err) {
+            log.error(err);
+        } else {
+            ret = memes ? memes : [];
+        }
+        callback(err, ret);
     });
 };
 
 
 
+
+var findAll = function (callback) {
+    log.info('memes findAll');
+
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        memeModel.find({}, function (err, memes) {
+            if (err) {
+                ret = null;
+            } else {
+
+                log.info(memes.length + ' entries have been found');
+                ret = memes ? memes : [];
+            }
+            callback(err, ret);
+        });
+    }
+};
+
+
+
 var findOneById = function (id, callback) {
-    console.log('meme findOneById "' + id + '"');
+    log.info('meme findOneById "' + id + '"');
     var idVal = id;
 
     if ('string' === typeof id && validatorUtils.isValidId(id)) {
         try {
             idVal = parseInt(id);
         } catch (e) {
-            console.error('error while casting id "' + id + '" to int');
-            callback({});
+            log.error('id cast error');
+            callback(e, null);
             return;
         }
     } else {
-        console.error('error. invalid id: ' + id);
-        callback({});
+        errMsg = 'invalid id value/type: ' + id;
+        log.error(errMsg);
+        callback(errMsg, null);
         return;
     }
 
-    findByAttr('_id', idVal, callback);
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        findByAttr('_idd', idVal, callback);
+    }
 };
 
 
 
 var findByTitle = function(title, callback) {
-    console.log('memes findByTitle "' + title + '"');
+    log.info('memes findByTitle "' + title + '"');
 
-    findByAttr('title', title, callback);
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        findByAttr('title', title, callback);
+    }
 };
 
 
@@ -117,42 +163,35 @@ var findByUploadDateBetween = function(startDate, endDate, callback) {
 
 
 var save = function (rqBody, callback) {
-    var reason, ret = {};
     var meme = new memeModel(rqBody);
 
-    return meme.validate()
-        .then(function () {
-            console.log('meme is valid');
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
 
-            return meme.save();
-        }, function (err) {
-            console.log('here');
-        })
-        .then(function (newMeme) {
-            console.log('created meme');
-            ret = newMeme ? newMeme : {};
-        })
-        .catch(function (e) {
-            reason = 'meme model save err: ' + e;
-            ret = {};
-        })
-        .then(function () {
-            callback(reason, ret);
-        })
-};
+        return meme.validate()
+            .then(function () {
+                log.info('meme data is valid. saving');
+                return meme.save();
 
+            }, function (err) {
+                errMsg = err;
+                log.error(errMsg);
+            })
+            .then(function (newMeme) {
+                log.info('meme has been saved');
 
-var findByAttr = function(attrName, attrVal, callback) {
-    console.log('memes findByAttr "' + attrName + ':' + attrVal + '"');
-
-    var query = {};
-    query[attrName] = attrVal;
-
-    memeModel.find(query, function (err, memes) {
-        if (err) throw err;
-
-        callback(memes ? memes : {});
-    });
+                ret = newMeme ? newMeme : {};
+            })
+            .catch(function (e) {
+                errMsg += e;
+                ret = null;
+                log.error(errMsg);
+            })
+            .then(function () {
+                callback(errMsg, ret);
+            })
+    }
 };
 
 
