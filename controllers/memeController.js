@@ -3,8 +3,11 @@
  */
 const memeModel     = require('./models/meme');
 
+
 //fat model, thin controller
 exports.findAll = function (rq, rsp) {
+    console.log("findAll");
+
     memeModel.findAll(function (memes) {
         if (memes) {
             rsp.send(memes);
@@ -14,8 +17,12 @@ exports.findAll = function (rq, rsp) {
     });
 };
 
+
+
 exports.findOneById = function (rq, rsp) {
+    console.log('find by id');
     var id = rq.params.id;
+
     memeModel.findOneById(id, function (singleMeme) {
         if (singleMeme) {
             rsp.send(singleMeme);
@@ -25,8 +32,11 @@ exports.findOneById = function (rq, rsp) {
     });
 };
 
+
+
 exports.findByTitle = function (rq, rsp) {
     var title = rq.params.title;
+
     memeModel.findByTitle(title, function (memes) {
         if (memes) {
             rsp.send(memes);
@@ -36,49 +46,58 @@ exports.findByTitle = function (rq, rsp) {
     });
 };
 
+
+
 exports.save = function (rq, rsp) {
     var chunks = [];
-    rq.on('data', function (chunk) {
-        chunks.push(chunk);
-    });
 
-    var data;
-    rq.on('end', function () {
+    var onDataEnd = function () {
         console.log('processing data');
-        data = Buffer.concat(chunks);
 
         var rqBody;
         try {
-             rqBody = JSON.parse(data);
-        } catch (e) {
-            console.log('error while parsing JSON: ' + e);
-            rsp.status(404).send({});
-            return;
-        }
+            rqBody = JSON.parse(Buffer.concat(chunks));
 
-        try {
-            memeModel.create(rqBody, function (err, meme) {
+            memeModel.save(rqBody, function (err, meme) {
                 if (err) {
-                    console.error('error while creating meme entry');
-                    rsp.status(422).send(err);
+                    var saveErr = 'error saving meme entry: ' + err;
+                    console.error(saveErr);
+                    rsp.status(422).send(saveErr);
+                    return;
                 }
+
                 if (meme) {
                     rsp.send(meme);
                 } else {
                     rsp.status(404).send({});
                 }
             });
+
+
         } catch (e) {
-            console.error('eeee: ');
+
+            var parseErr = 'error saving meme: ' + e;
+            rsp.status(404).send(parseErr);
+            console.log(parseErr);
         }
+    };
+
+
+    rq.on('data', function (chunk) {
+        chunks.push(chunk);
     });
+
+    rq.on('end', onDataEnd);
 };
+
 
 
 exports.update = function (rq, rsp) {
     const id = rq.params.id;
     rsp.send('NOT IMPLEMENTED');
 };
+
+
 
 exports.delete = function (rq, rsp) {
     const id = rq.params.id;

@@ -4,7 +4,7 @@
 const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
-const main              = require('../../index');
+const db                = require('../../db');
 
 
 var memeSchema = Schema({
@@ -22,7 +22,33 @@ var memeSchema = Schema({
     rating: { type: Number, default: 0 }
 });
 
+var counterSchema = Schema({
+    _id: { type: String, required: true},
+    seq: { type: Number, default: 0}
+});
+
+memeSchema.pre('save', function (next) {
+    console.log('meme_id auto inc');
+    var docBeingSaved = this;
+
+
+    counter.findByIdAndUpdate(
+        {_id: 'meme_id'},
+        {$inc: {seq: 1}},
+        function (err, counter) {
+            if (err)
+                return next(err);
+            docBeingSaved._id = counter.seq;
+            console.log('id: ' + docBeingSaved._id);
+
+            next();
+    });
+});
+
 const memeModel = mongoose.model('meme', memeSchema);
+const counter = mongoose.model('counter', counterSchema);
+
+
 
 
 
@@ -37,6 +63,8 @@ var findAll = function (callback) {
         callback(memes ? memes : {});
     });
 };
+
+
 
 var findOneById = function (id, callback) {
     console.log('meme findOneById "' + id + '"');
@@ -59,11 +87,15 @@ var findOneById = function (id, callback) {
     findByAttr('_id', idVal, callback);
 };
 
+
+
 var findByTitle = function(title, callback) {
     console.log('memes findByTitle "' + title + '"');
 
     findByAttr('title', title, callback);
 };
+
+
 
 var findByUploadDateBetween = function(startDate, endDate, callback) {
     console.log('findByUploadDateBetween "' + startDate + '" and "' + endDate + '"');
@@ -84,85 +116,29 @@ var findByUploadDateBetween = function(startDate, endDate, callback) {
 };
 
 
-/*
-var create = function(rqBody, callback) {
-    var reason = '', retVal = {};
-    console.log('meme create. validating');
+var save = function (rqBody, callback) {
+    var reason, ret = {};
+    var meme = new memeModel(rqBody);
 
-    var m = memeModel(rqBody);
+    return meme.validate()
+        .then(function () {
+            console.log('meme is valid');
 
-    m.validate(function (err) {
-        if (err) callback(err, retVal);
-        console.log('meme valid');
-
-        main.connectToDb(function (db) {
-            try {
-                getNextId(db, 'meme_id', function (err, result) {
-                    if (err) {
-                        console.log('error 2');
-                        callback(err, retVal);
-                    }
-
-                    console.log('id: ' + result + ' of type ' + typeof result);
-                    if (result) {
-                        rqBody['_id'] = result;
-
-                        memeModel.create(rqBody, function (errCreate, newMeme) {
-                            if (errCreate) throw errCreate;
-
-                            console.log('new meme[' + result + ']: ' + newMeme);
-                            retVal = newMeme ? newMeme : {};
-
-                            callback(reason, retVal);
-                        });
-                    } else {
-                        reason = 'result is undefined';
-                        console.error(reason);
-
-                        callback(reason, retVal);
-                    }//
-                });
-            } catch (e) {
-                reason = 'error while getting next Id for meme: ' + e;
-                console.error(reason);
-
-                callback(reason, retVal);
-            }
-        });
-    });
-};*/
-
-var create = function (rqBody, callback) {
-    var reason = '', retVal = {};
-    var m = memeModel(rqBody);
-
-    return m.validate()
-        .then(function(e1) {
-            //asd
-        }, function () {
-            console.log('meme valeed');
-
-            return main.connectToDb();
-        })
-        .then(function (db) {
-            console.log('db connected');
-
-            return getNextId(db, 'meme_id')
-        }, function (e2) {
-
-        })
-        .then(function (result) {
-            console.log('next id evaluated');
-
-            rqBody['id'] = result;
-            return memeModel.create(rqBody);
+            return meme.save();
+        }, function (err) {
+            console.log('here');
         })
         .then(function (newMeme) {
             console.log('created meme');
-            retVal = newMeme ? newMeme : {};
-
-            callback(reason, retVal);
-        });
+            ret = newMeme ? newMeme : {};
+        })
+        .catch(function (e) {
+            reason = 'meme model save err: ' + e;
+            ret = {};
+        })
+        .then(function () {
+            callback(reason, ret);
+        })
 };
 
 
@@ -179,19 +155,8 @@ var findByAttr = function(attrName, attrVal, callback) {
     });
 };
 
-function getNextId(db, name, callback) {
-    db.collection('counters').findAndModify(
-        { _id: name }, null, { $inc: { seq: 1 } },
-        function(err, result) {
-            if (err) callback(err, result);
-            console.log('getting id');
-            callback(err, result.value.seq);
-        }
-    );
-}
-
 
 exports.findAll = findAll;
 exports.findOneById = findOneById;
 exports.findByTitle = findByTitle;
-exports.create = create;
+exports.save = save;
