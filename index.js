@@ -6,18 +6,17 @@ const server            = require("./server");
 const db                = require('./db');
 const dbConfig          = require('./config/dbConfig');
 const serverConfig      = require('./config/serverConfig');
+const logger            = require('./config/logConfig');
 const router            = require('./controllers/routes/router');
 
 var app = express();
-app.use('', router);
+app.use('/api', router);
 
 server.start(app, serverConfig);
+var dbInst// = db.connect(dbConfig);
 
-function connectToDb(callback) {
-    db.connect(dbConfig, callback);
-}
+
 
 exports.app = app;
-exports.connectToDb = connectToDb;
-
+exports.dbInst = dbInst;
 //TODO Grunt?
