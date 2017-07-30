@@ -67,7 +67,7 @@ function dbConnError(callback) {
 }
 
 var findByAttr = function(attrName, attrVal, callback) {
-    log.info('memes findByAttr ' + attrName + ':' + attrVal + '');
+    log.info('memes findByAttr [' + attrName + ':' + attrVal + ']');
 
     var query = {};
     query[attrName] = attrVal;
@@ -110,7 +110,7 @@ var findAll = function (callback) {
 
 
 var findOneById = function (idVal, callback) {
-    log.info('meme findOneById "' + idVal + '"');
+    log.info('meme findOneById [' + idVal + ']');
 
     var id;
     try {
@@ -235,7 +235,7 @@ var save = function (rqBody, callback) {
 
 
 var update = function (idVal, rqBody, callback) {
-    log.info('meme model update by id ' + idVal);
+    log.info('meme model update by id [' + idVal + ']');
 
     var id;
     try {
@@ -308,7 +308,15 @@ var update = function (idVal, rqBody, callback) {
 };
 
 
-//TODO safe delete same as upd but rqBody[is_active] = false;
+var memeDelete = function (idVal, callback) {
+    log.info('meme model delete by id [' + idVal + ']');
+
+    var inactiveMeme = {};
+    inactiveMeme['is_active'] = false;
+
+    log.info('try safe delete by setting is_active=false');
+    update(idVal, inactiveMeme, callback);
+};
 
 
 exports.findAll = findAll;
@@ -316,3 +324,4 @@ exports.findOneById = findOneById;
 exports.findByTitle = findByTitle;
 exports.save = save;
 exports.update = update;
+exports.delete = memeDelete;

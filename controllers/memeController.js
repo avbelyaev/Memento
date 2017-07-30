@@ -177,6 +177,20 @@ exports.update = function (rq, rsp) {
 
 
 exports.delete = function (rq, rsp) {
-    const id = rq.params.id;
-    rsp.send('NOT IMPLEMENTED');
+    var id = rq.params.id;
+    log.info('meme ctrl delete by id ' + id);
+
+    memeModel.delete(id, function (err, deletedMeme) {
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (deletedMeme) {
+                ret = deletedMeme;
+            } else {
+                status = 404;
+            }
+        }
+        respond(rsp, status, ret);
+    });
 };
