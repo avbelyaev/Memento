@@ -3,6 +3,11 @@ sudo apt-get install npm
 npm install npm-cli
 //npm-cli.js for webstorm: /usr/lib/nodejs/npm
 
+//update to nodejs v6:
+curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+//initialize app
 npm init
 npm install --save express mongoose formidable body-parser
 npm install --save-dev nodemon mocha
