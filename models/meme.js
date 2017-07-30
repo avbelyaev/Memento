@@ -5,6 +5,7 @@ const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
 const db                = require('../db');
+const counter           = require('./counter');
 const log               = require('winston');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
@@ -29,11 +30,6 @@ const memeSchema = Schema({
     strict: 'throw' //fails on unknown fields in rqBody
 });
 
-const counterSchema = Schema({
-    _id: { type: String, required: true},
-    seq: { type: Number, default: 0}
-});
-
 memeSchema.pre('save', function (next) {
     log.info('meme_id inc');
     var docBeingSaved = this;
@@ -53,7 +49,6 @@ memeSchema.pre('save', function (next) {
 });
 
 const memeModel = mongoose.model('meme', memeSchema);
-const counter = mongoose.model('counter', counterSchema);
 
 
 
