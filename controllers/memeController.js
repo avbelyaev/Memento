@@ -4,20 +4,23 @@
 const memeModel         = require('../models/meme');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
+const AppError          = require('../utils/errors/AppError');
+const ValidationError   = require('../utils/errors/ValidationError');
+const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
 //fat model, thin controller
 
 var status = 200, ret = null;
 
 function respond(rsp, status, ret) {
-    log.info('rsp(' + status + ')');
+    log.info('--> rsp(' + status + ')');
     rsp.status(status).send(ret);
 }
 
-function prepareError500(err) {
-    log.error('meme ctrl: ' + err);
+function prepareError(err) {
+    log.error('meme ctrl: ', err.message);
 
-    status = 500;
+    status = err.status || 500;
     ret = err;
 }
 
@@ -28,9 +31,9 @@ exports.findAll = function (rq, rsp) {
 
     memeModel.findAll(function (err, memes) {
         if (err) {
-            prepareError500(err);
-
+            prepareError(err);
         } else {
+
             if (memes) {
                 ret = memes;
             } else {
@@ -50,9 +53,9 @@ exports.findOneById = function (rq, rsp) {
 
     memeModel.findOneById(id, function (err, singleMeme) {
         if (err) {
-            prepareError500(err);
-
+            prepareError(err);
         } else {
+
             if (singleMeme) {
                 ret = singleMeme;
             } else {
@@ -71,9 +74,9 @@ exports.findByTitle = function (rq, rsp) {
 
     memeModel.findByTitle(title, function (err, memes) {
         if (err) {
-            prepareError500(err);
-
+            prepareError(err);
         } else {
+
             if (memes) {
                 ret = memes;
             } else {
@@ -95,33 +98,29 @@ exports.save = function (rq, rsp) {
 
         var rqBody;
         try {
-            rqBody = JSON.parse(Buffer.concat(chunks));
+            rqBody = validatorUtils.parseJSON(Buffer.concat(chunks));
+
         } catch (e) {
-            respond(rsp, 400, e);
+            prepareError(e);
+            respond(rsp, status, e);
             return;
         }
 
-        if (validatorUtils.isEmpty(rqBody)) {
-            respond(rsp, 400, 'empty body');
-        } else {
-            //its not in try-catch block since async exceptions
-            //cannot be handled in regular try-catch way
-            memeModel.save(rqBody, function (err, meme) {
-                if (err) {
-                    prepareError500(err);
-                } else {
+        memeModel.save(rqBody, function (err, meme) {
+            if (err) {
+                prepareError(err);
+            } else {
 
-                    if (meme) {
-                        ret = meme;
-                        status = 201;
-                    } else {
-                        ret = null;
-                        status = 404;
-                    }
+                if (meme) {
+                    ret = meme;
+                    status = 201;
+                } else {
+                    ret = null;
+                    status = 404;
                 }
-                respond(rsp, status, ret);
-            });
-        }
+            }
+            respond(rsp, status, ret);
+        });
     };
 
 
@@ -144,39 +143,28 @@ exports.update = function (rq, rsp) {
 
         var rqBody;
         try {
-            rqBody = JSON.parse(Buffer.concat(chunks));
+            rqBody = validatorUtils.parseJSON(Buffer.concat(chunks));
+
         } catch (e) {
-            respond(rsp, 400, e);
+            prepareError(e);
+            respond(rsp, status, e);
             return;
         }
 
-        if (validatorUtils.isEmpty(rqBody)) {
-            respond(rsp, 400, 'empty body');
-        } else {
+        memeModel.update(id, rqBody, function (err, meme) {
+            if (err) {
+                prepareError(err);
+            } else {
 
-            memeModel.update(id, rqBody, function (err, meme) {
-                if (err) {
-                    if (err.code && 404 === err.code && err.msg) {
-                        //doc to be update was not found
-                        status = 404;
-                        ret = err.msg;
-
-                    } else {
-                        //otherwise its regular internal err
-                        prepareError500(err);
-                    }
+                if (meme) {
+                    ret = meme;
                 } else {
-
-                    if (meme) {
-                        ret = meme;
-                    } else {
-                        ret = null;
-                        status = 404;
-                    }
+                    ret = null;
+                    status = 404;
                 }
-                respond(rsp, status, ret);
-            })
-        }
+            }
+            respond(rsp, status, ret);
+        })
     };
 
     rq.on('data', function (chunk) {

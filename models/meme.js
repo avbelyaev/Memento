@@ -6,9 +6,9 @@ const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
 const db                = require('../db');
 const log               = require('winston');
-const AppError          = require('../utils/errors/AppError');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
+const InternalError     = require('../utils/errors/InternalError');
 
 
 const memeSchema = Schema({
@@ -25,6 +25,8 @@ const memeSchema = Schema({
     upload_date: { type: Date, default: Date.now() },
     rating: { type: Number, default: 0 },
     is_active: {type: Boolean, default: true }
+}, {
+    strict: 'throw' //fails on unknown fields in rqBody
 });
 
 const counterSchema = Schema({
@@ -56,37 +58,12 @@ const counter = mongoose.model('counter', counterSchema);
 
 
 
-var errMsg = null, ret = null;
+var ret = null;
 
 function dbConnError(callback) {
-    errMsg = 'db connection err';
-    log.error('meme model: ' + errMsg);
-    callback(errMsg, null);
-}
-
-function emptyObjError(callback) {
-    errMsg = 'request body is empty';
-    log.error('meme model: ' + errMsg);
-    callback(errMsg, null);
-}
-
-function validate(idVal, callback) {
-    var id;
-    if ('string' === typeof idVal && validatorUtils.isValidId(idVal)) {
-        try {
-            id = parseInt(idVal);
-        } catch (e) {
-            log.error('id cast error');
-            callback(e, null);
-            return;
-        }
-    } else {
-        errMsg = 'invalid id value/type: ' + idVal;
-        log.error(errMsg);
-        callback(errMsg, null);
-        return;
-    }
-    return id;
+    var errMsg = 'DB connection error';
+    log.error(errMsg);
+    callback(new InternalError({message: errMsg}), null);
 }
 
 var findByAttr = function(attrName, attrVal, callback) {
@@ -97,7 +74,9 @@ var findByAttr = function(attrName, attrVal, callback) {
 
     memeModel.find(query, function (err, memes) {
         if (err) {
-            log.error(err);
+            err = new InternalError(err);
+            ret = null;
+
         } else {
             ret = memes ? memes : [];
         }
@@ -117,10 +96,10 @@ var findAll = function (callback) {
 
         memeModel.find({}, function (err, memes) {
             if (err) {
-                ret = null;
+                err = new InternalError(err);
             } else {
 
-                log.info(memes.length + ' entries have been found');
+                log.info('entries found: ' + memes.length);
                 ret = memes ? memes : [];
             }
             callback(err, ret);
@@ -130,22 +109,15 @@ var findAll = function (callback) {
 
 
 
-var findOneById = function (id, callback) {
-    log.info('meme findOneById "' + id + '"');
-    var idVal = id;
+var findOneById = function (idVal, callback) {
+    log.info('meme findOneById "' + idVal + '"');
 
-    if ('string' === typeof id && validatorUtils.isValidId(id)) {
-        try {
-            idVal = parseInt(id);
-        } catch (e) {
-            log.error('id cast error');
-            callback(e, null);
-            return;
-        }
-    } else {
-        errMsg = 'invalid id value/type: ' + id;
-        log.error(errMsg);
-        callback(errMsg, null);
+    var id;
+    try {
+        id = validatorUtils.validateAndConvertId(idVal);
+    } catch(e) {
+        log.error('validate and convert id err: ', e.message);
+        callback(e, null);
         return;
     }
 
@@ -153,7 +125,25 @@ var findOneById = function (id, callback) {
         dbConnError(callback);
     } else {
 
-        findByAttr('_id', idVal, callback);
+        return findByAttr('_id', id, function (err, memesFound) {
+            var error = ret = null;
+
+            if (err) {
+                error = new InternalError(err);
+
+            } else {
+                if (memesFound && 1 === memesFound.length) {
+                    ret = memesFound;
+
+                } else {
+                    error = new DocNotFoundError({
+                        message: 'not found'
+                    });
+                    ret = null;
+                }
+            }
+            callback(error, ret);
+        });
     }
 };
 
@@ -173,6 +163,7 @@ var findByTitle = function(title, callback) {
 
 
 var findByUploadDateBetween = function(startDate, endDate, callback) {
+    log.error('NOT IMPLEMENTED');
     console.log('findByUploadDateBetween "' + startDate + '" and "' + endDate + '"');
 
     var query = {
@@ -192,133 +183,127 @@ var findByUploadDateBetween = function(startDate, endDate, callback) {
 
 
 var save = function (rqBody, callback) {
-    var meme = new memeModel(rqBody);
+    log.info('meme model save');
 
     if (!db.isConnected()) {
         dbConnError(callback);
     } else {
 
-        return meme.validate()
+        var meme;
+        try {
+            meme = new memeModel(rqBody);
+        } catch(e) {
+            log.error(e.message);
+            callback(new ValidationError(e), null);
+            return;
+        }
+
+        ret = null;
+
+        return meme
+            .validate()
             .then(function () {
+
                 log.info('meme data is valid. saving');
                 return meme.save();
 
             }, function (err) {
-                errMsg = err;
-                log.error(errMsg);
+                throw new ValidationError(err);
             })
             .then(function (newMeme) {
-                log.info('meme has been saved');
 
-                ret = newMeme ? newMeme : null;
-            })
-            .catch(function (e) {
-                errMsg += e;
-                ret = null;
-                log.error(errMsg);
+                if (newMeme) {
+                    log.info('meme has been saved');
+                    ret = newMeme;
+
+                } else {
+                    throw new DocNotFoundError({message: 'new meme not found'});
+                }
             })
             .then(function () {
-                callback(errMsg, ret);
+                callback(null, ret);
             })
+            .catch(function (e) {
+                log.error('meme model save err: ', e.message);
+
+                callback(e, null);
+            })
+
     }
 };
 
 
+
 var update = function (idVal, rqBody, callback) {
     log.info('meme model update by id ' + idVal);
-    var id = validate(idVal, callback);
+
+    var id;
+    try {
+        id = validatorUtils.validateAndConvertId(idVal);
+    } catch(e) {
+        log.error('validate and convert id err: ', e.message);
+        callback(e, null);
+        return;
+    }
 
     if (!db.isConnected()) {
         dbConnError(callback);
+
     } else {
 
-        log.info('finding if meme exists');
+        try {
+            //validate against schema
+            var tmp = new memeModel(rqBody);
+        } catch(e) {
+            log.error(e.message);
+            callback(new ValidationError(e), null);
+            return;
+        }
 
-        /*
-        memeModel
-            .findOne({_id: id})
-            .exec(function (err, existingMeme) {
-                if (err) {
-                    log.error(err);
-                    callback(err, null);
+        ret = null;
 
-                } else {
-                    if (existingMeme) {
-                        log.info('meme has been found. updating');
-
-
-
-                    } else {
-                        errMsg = 'meme not found';
-                        log.error(errMsg);
-                        callback({code: 404, msg: errMsg}, null);
-                    }
-                }
-            });*/
-        memeModel
+        return memeModel
             .update({_id: id}, {$set: rqBody})
             .exec()
             .then(function(affected) {
-                if (0 !== affected.nModified) {
-                    log.info('updated successfully');
+                log.info('entries affected: ', affected);
 
+                if (0 !== affected.n) {
+                    //if any was affected then find what was it
                     return memeModel
                         .findOne({_id: id})
                         .exec()
+
                 } else {
-                    //throw new DocNotFoundError()
-                    ret = null;
+                    if (0 === affected.ok) {
+                        //0 === OK when entry can't be updated
+                        //then assume rqBody is incorrect
+                        throw new ValidationError({message: 'cannot be updated'});
+                    } else {
+                        //otherwise no doc was updated
+                        throw new DocNotFoundError({message: 'nothing was updated'});
+                    }
                 }
             })
             .then(function (updatedMeme) {
+
                 if (updatedMeme) {
+                    log.info('updated meme found');
                     ret = updatedMeme;
+
                 } else {
-                    errMsg = 'meme not found';
-                    log.error(errMsg);
-                    ret = null;
+                    throw new DocNotFoundError({message: 'updated meme not found'});
                 }
-            })
-            .catch(function (err) {
-                log.error(err);
-                //errMsg = err;
-                //log.error(errMsg);
-                ret = null;
             })
             .then(function () {
-                callback(errMsg, ret);
+                callback(null, ret);
+            })
+            .catch(function (e) {
+                log.error('meme model update err: ', e.message);
+
+                callback(e, null);
             })
 
-        /*memeModel
-            .update({_id: id}, {$set: rqBody})
-            .exec(function (err1, affected) {
-                if (err1) {
-                    log.error(err1);
-                } else {
-                    if (0 !== affected.nModified) {
-                        log.info('updated successfully');
-
-                        memeModel
-                            .findOne({_id: id})
-                            .exec(function (err, meme) {
-                                if (err) {
-                                    log.error(err);
-                                } else {
-                                    if (meme) {
-                                        ret = meme;
-                                    } else {
-                                        errMsg = 'meme not found';
-                                        log.error(errMsg);
-                                    }
-                                }
-                                callback(err, ret);
-                            });
-                    } else {
-                        ret = null;
-                    }
-                }
-                callback(err1, ret);
-            })*/
     }
 };
 
