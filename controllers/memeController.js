@@ -1,19 +1,20 @@
 /**
  * Created by anthony on 09.07.17.
  */
-const memeModel     = require('../models/meme');
-const log           = require('winston');
+const memeModel         = require('../models/meme');
+const log               = require('winston');
+const validatorUtils    = require('../utils/validatorUtils');
 
-
+//fat model, thin controller
 
 var status = 200, ret = null;
 
-function respond(rsp) {
+function respond(rsp, status, ret) {
     log.info('rsp(' + status + ')');
     rsp.status(status).send(ret);
 }
 
-function modelError(err) {
+function prepareError500(err) {
     log.error('meme ctrl: ' + err);
 
     status = 500;
@@ -21,13 +22,13 @@ function modelError(err) {
 }
 
 
-//fat model, thin controller
+
 exports.findAll = function (rq, rsp) {
     log.info("meme ctrl findAll");
 
     memeModel.findAll(function (err, memes) {
         if (err) {
-            modelError(err);
+            prepareError500(err);
 
         } else {
             if (memes) {
@@ -49,7 +50,7 @@ exports.findOneById = function (rq, rsp) {
 
     memeModel.findOneById(id, function (err, singleMeme) {
         if (err) {
-            modelError(err);
+            prepareError500(err);
 
         } else {
             if (singleMeme) {
@@ -70,7 +71,7 @@ exports.findByTitle = function (rq, rsp) {
 
     memeModel.findByTitle(title, function (err, memes) {
         if (err) {
-            modelError(err);
+            prepareError500(err);
 
         } else {
             if (memes) {
@@ -100,23 +101,27 @@ exports.save = function (rq, rsp) {
             return;
         }
 
-        //its not in try-catch block since async exceptions
-        //cannot be handled in regular try-catch way
-        memeModel.save(rqBody, function (err, meme) {
-            if (err) {
-                modelError(err);
-            } else {
-
-                if (meme) {
-                    ret = meme;
-                    status = 201;
+        if (validatorUtils.isEmpty(rqBody)) {
+            respond(rsp, 400, 'empty body');
+        } else {
+            //its not in try-catch block since async exceptions
+            //cannot be handled in regular try-catch way
+            memeModel.save(rqBody, function (err, meme) {
+                if (err) {
+                    prepareError500(err);
                 } else {
-                    ret = null;
-                    status = 500;
+
+                    if (meme) {
+                        ret = meme;
+                        status = 201;
+                    } else {
+                        ret = null;
+                        status = 404;
+                    }
                 }
-            }
-            respond(rsp, status, ret);
-        });
+                respond(rsp, status, ret);
+            });
+        }
     };
 
 
@@ -145,21 +150,33 @@ exports.update = function (rq, rsp) {
             return;
         }
 
-        memeModel.update(id, rqBody, function (err, meme) {
-            if (err) {
-                modelError(err);
-                log.error('code: ' + err.code);
-            } else {
+        if (validatorUtils.isEmpty(rqBody)) {
+            respond(rsp, 400, 'empty body');
+        } else {
 
-                if (meme) {
-                    ret = meme;
+            memeModel.update(id, rqBody, function (err, meme) {
+                if (err) {
+                    if (err.code && 404 === err.code && err.msg) {
+                        //doc to be update was not found
+                        status = 404;
+                        ret = err.msg;
+
+                    } else {
+                        //otherwise its regular internal err
+                        prepareError500(err);
+                    }
                 } else {
-                    ret = null;
-                    status = 500;
+
+                    if (meme) {
+                        ret = meme;
+                    } else {
+                        ret = null;
+                        status = 404;
+                    }
                 }
-            }
-            respond(rsp, status, ret);
-        })
+                respond(rsp, status, ret);
+            })
+        }
     };
 
     rq.on('data', function (chunk) {

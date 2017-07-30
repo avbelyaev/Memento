@@ -3,9 +3,12 @@
  */
 const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
-const validatorUtils    = require('../controllers/utils/validatorUtils');
+const validatorUtils    = require('../utils/validatorUtils');
 const db                = require('../db');
 const log               = require('winston');
+const AppError          = require('../utils/errors/AppError');
+const ValidationError   = require('../utils/errors/ValidationError');
+const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
 
 const memeSchema = Schema({
@@ -57,6 +60,12 @@ var errMsg = null, ret = null;
 
 function dbConnError(callback) {
     errMsg = 'db connection err';
+    log.error('meme model: ' + errMsg);
+    callback(errMsg, null);
+}
+
+function emptyObjError(callback) {
+    errMsg = 'request body is empty';
     log.error('meme model: ' + errMsg);
     callback(errMsg, null);
 }
@@ -201,7 +210,7 @@ var save = function (rqBody, callback) {
             .then(function (newMeme) {
                 log.info('meme has been saved');
 
-                ret = newMeme ? newMeme : {};
+                ret = newMeme ? newMeme : null;
             })
             .catch(function (e) {
                 errMsg += e;
@@ -222,32 +231,99 @@ var update = function (idVal, rqBody, callback) {
     if (!db.isConnected()) {
         dbConnError(callback);
     } else {
-        log.info('finding if meme to be updated exists');
 
+        log.info('finding if meme exists');
+
+        /*
         memeModel
             .findOne({_id: id})
             .exec(function (err, existingMeme) {
                 if (err) {
-                    callback(new Error({code: 404}), null);
+                    log.error(err);
+                    callback(err, null);
+
                 } else {
                     if (existingMeme) {
+                        log.info('meme has been found. updating');
 
-                        log.info('existing');
 
-                        memeModel
-                            .update({_id: id}, {$set: rqBody})
-                            .exec(function (err, updatedMeme) {
-                                log.info('updated');
-                                callback(errMsg, {});
-                            })
+
                     } else {
-                        callback(new Error({code: 404}), null);
+                        errMsg = 'meme not found';
+                        log.error(errMsg);
+                        callback({code: 404, msg: errMsg}, null);
                     }
                 }
-            });
+            });*/
+        memeModel
+            .update({_id: id}, {$set: rqBody})
+            .exec()
+            .then(function(affected) {
+                if (0 !== affected.nModified) {
+                    log.info('updated successfully');
+
+                    return memeModel
+                        .findOne({_id: id})
+                        .exec()
+                } else {
+                    //throw new DocNotFoundError()
+                    ret = null;
+                }
+            })
+            .then(function (updatedMeme) {
+                if (updatedMeme) {
+                    ret = updatedMeme;
+                } else {
+                    errMsg = 'meme not found';
+                    log.error(errMsg);
+                    ret = null;
+                }
+            })
+            .catch(function (err) {
+                log.error(err);
+                //errMsg = err;
+                //log.error(errMsg);
+                ret = null;
+            })
+            .then(function () {
+                callback(errMsg, ret);
+            })
+
+        /*memeModel
+            .update({_id: id}, {$set: rqBody})
+            .exec(function (err1, affected) {
+                if (err1) {
+                    log.error(err1);
+                } else {
+                    if (0 !== affected.nModified) {
+                        log.info('updated successfully');
+
+                        memeModel
+                            .findOne({_id: id})
+                            .exec(function (err, meme) {
+                                if (err) {
+                                    log.error(err);
+                                } else {
+                                    if (meme) {
+                                        ret = meme;
+                                    } else {
+                                        errMsg = 'meme not found';
+                                        log.error(errMsg);
+                                    }
+                                }
+                                callback(err, ret);
+                            });
+                    } else {
+                        ret = null;
+                    }
+                }
+                callback(err1, ret);
+            })*/
     }
 };
 
+
+//TODO safe delete same as upd but rqBody[is_active] = false;
 
 
 exports.findAll = findAll;

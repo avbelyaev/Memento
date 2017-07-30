@@ -20,7 +20,8 @@ ins_meme() {
             data:                '',
             content_type:       ''
         },
-        rating:                 0
+        rating:                 0,
+        is_active:              true
     })"
 }
 
