@@ -2,7 +2,6 @@
 
 curl -X POST \
   http://localhost:8888/api/meme/create \
-  -H 'cache-control: no-cache' \
   -H 'content-type: application/json' \
   -d '{
 	"title": "a wild meme appeared from curl",
@@ -13,14 +12,17 @@ curl -X POST \
 }'
 
 
-curl -X GET \
-  http://localhost:8888/api/memes/ \
-  -H 'cache-control: no-cache'
+curl -X GET http://localhost:8888/api/memes/
+
+
+curl -X GET http://localhost:8888/api/meme/3
 
 
 curl -X PUT \
-  http://localhost:8888/api/meme/10 \
-  -H 'cache-control: no-cache' \
+  http://localhost:8888/api/meme/5 \
   -d '{
-	"title": "a wild meme appeared and promised to update 5"
+	"title": "another wild meme appeared and did smth"
 }'
+
+
+curl -X DELETE http://localhost:8888/api/meme/4

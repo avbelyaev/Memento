@@ -13,7 +13,7 @@ var app = express();
 app.use('/api', router);
 
 server.start(app, serverConfig);
-var dbInst// = db.connect(dbConfig);
+var dbInst = db.connect(dbConfig);
 
 
 

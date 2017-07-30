@@ -4,7 +4,6 @@
 const memeModel         = require('../models/meme');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
-const AppError          = require('../utils/errors/AppError');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
