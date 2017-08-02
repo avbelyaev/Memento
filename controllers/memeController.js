@@ -4,6 +4,7 @@
 const memeModel         = require('../models/meme');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
+const controllerUtils   = require('../utils/controllerUtils');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
@@ -11,15 +12,17 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
 var status = 200, ret = null;
 
-function respond(rsp, status, ret) {
-    log.info('--> rsp(' + status + ')');
-    rsp.status(status).send(ret);
-}
-
 function prepareError(err) {
     log.error('meme ctrl: ', err.message);
 
-    status = err.status || 500;
+    if (err instanceof ValidationError) {
+        status = 400;
+    } else if (err instanceof DocNotFoundError) {
+        status = 404;
+    } else {
+        status = 500;
+    }
+
     ret = err;
 }
 
@@ -39,7 +42,7 @@ exports.findAll = function (rq, rsp) {
                 ret = [];
             }
         }
-        respond(rsp, status, ret);
+        controllerUtils.respond(rsp, status, ret);
     });
 };
 
@@ -61,7 +64,7 @@ exports.findOneById = function (rq, rsp) {
                 status = 404;
             }
         }
-        respond(rsp, status, ret);
+        controllerUtils.respond(rsp, status, ret);
     });
 };
 
@@ -82,7 +85,7 @@ exports.findByTitle = function (rq, rsp) {
                 ret = [];
             }
         }
-        respond(rsp, status, ret);
+        controllerUtils.respond(rsp, status, ret);
     });
 };
 
@@ -101,7 +104,7 @@ exports.save = function (rq, rsp) {
 
         } catch (e) {
             prepareError(e);
-            respond(rsp, status, e);
+            controllerUtils.respond(rsp, status, e);
             return;
         }
 
@@ -118,7 +121,7 @@ exports.save = function (rq, rsp) {
                     status = 404;
                 }
             }
-            respond(rsp, status, ret);
+            controllerUtils.respond(rsp, status, ret);
         });
     };
 
@@ -146,7 +149,7 @@ exports.update = function (rq, rsp) {
 
         } catch (e) {
             prepareError(e);
-            respond(rsp, status, e);
+            controllerUtils.respond(rsp, status, e);
             return;
         }
 
@@ -162,7 +165,7 @@ exports.update = function (rq, rsp) {
                     status = 404;
                 }
             }
-            respond(rsp, status, ret);
+            controllerUtils.respond(rsp, status, ret);
         })
     };
 
@@ -190,6 +193,6 @@ exports.delete = function (rq, rsp) {
                 status = 404;
             }
         }
-        respond(rsp, status, ret);
+        controllerUtils.respond(rsp, status, ret);
     });
 };
