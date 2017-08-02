@@ -45,14 +45,92 @@ const postModel = mongoose.model('post', postSchema);
 
 
 
+var ret = null;
 
-var findAll = function (callback) {
-    
+function dbConnError(callback) {
+    var errMsg = 'DB connection error';
+    log.error(errMsg);
+    callback(new InternalError({message: errMsg}), null);
+}
+
+var findByAttr = function(attrName, attrVal, callback) {
+    log.info('posts findByAttr [' + attrName + ':' + attrVal + ']');
+
+    var query = {};
+    query[attrName] = attrVal;
+
+    postModel.find(query, function (err, posts) {
+        if (err) {
+            err = new InternalError(err);
+            ret = null;
+
+        } else {
+            ret = posts ? posts : [];
+        }
+        callback(err, ret);
+    });
 };
 
 
-var findOneById = function (id, callback) {
-    
+
+
+var findAll = function (callback) {
+    log.info('posts findAll');
+
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        postModel.find({}, function (err, posts) {
+            if (err) {
+                err = new InternalError(err);
+            } else {
+
+                log.info('entries found: ' + posts.length);
+                ret = posts ? posts : [];
+            }
+            callback(err, ret);
+        });
+    }
+};
+
+
+var findOneById = function (idVal, callback) {
+    log.info('post findOneById [' + idVal + ']');
+
+    var id;
+    try {
+        id = validatorUtils.validateAndConvertId(idVal);
+    } catch(e) {
+        log.error('validate and convert id err: ', e.message);
+        callback(e, null);
+        return;
+    }
+
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        return findByAttr('_id', id, function (err, postsFound) {
+            var error = ret = null;
+
+            if (err) {
+                error = new InternalError(err);
+
+            } else {
+                if (postsFound && 1 === postsFound.length) {
+                    ret = postsFound;
+
+                } else {
+                    error = new DocNotFoundError({
+                        message: 'not found'
+                    });
+                    ret = null;
+                }
+            }
+            callback(error, ret);
+        });
+    }
 };
 
 

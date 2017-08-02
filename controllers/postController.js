@@ -4,6 +4,7 @@
 const postModel         = require('../models/post');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
+const controllerUtils   = require('../utils/controllerUtils');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
@@ -11,22 +12,38 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
 var status = 200, ret = null;
 
-function respond(rsp, status, ret) {
-    log.info('--> rsp(' + status + ')');
-    rsp.status(status).send(ret);
-}
-
 function prepareError(err) {
-    log.error('post ctrl: ', err.message);
+    log.error('meme ctrl: ', err.message);
 
-    status = err.status || 500;
+    if (err instanceof ValidationError) {
+        status = 400;
+    } else if (err instanceof DocNotFoundError) {
+        status = 404;
+    } else {
+        status = 500;
+    }
+
     ret = err;
 }
 
 
 
 exports.findAll = function (rq, rsp) {
-    rsp.status(501).send('NOT IMPLEMENTED');
+    log.info("post ctrl findAll");
+
+    postModel.findAll(function (err, memes) {
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (memes) {
+                ret = memes;
+            } else {
+                ret = [];
+            }
+        }
+        controllerUtils.respond(rsp, status, ret);
+    });
 };
 
 
@@ -34,7 +51,19 @@ exports.findOneById = function (rq, rsp) {
     var id = rq.query.id;
     log.info('post ctrl findOneById ' + id);
 
-    rsp.status(501).send('NOT IMPLEMENTED');
+    postModel.findOneById(id, function (err, singlePost) {
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (singlePost) {
+                ret = singlePost;
+            } else {
+                status = 404;
+            }
+        }
+        controllerUtils.respond(rsp, status, ret);
+    });
 };
 
 
@@ -42,7 +71,7 @@ exports.findByTitle = function (rq, rsp) {
     var title = rq.query.title;
     log.info('post ctrl findByTitle "' + title + '"');
 
-    rsp.status(501).send('NOT IMPLEMEdNTED');
+    rsp.status(501).send('NOT IMPLEMENTED');
 };
 
 
