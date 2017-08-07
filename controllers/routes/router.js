@@ -19,8 +19,10 @@ router.get      ('/memes/', memeController.findAll);
 router.post     ('/posts/create', postController.save);
 router.get      ('/posts/findByTitle', postController.findByTitle);
 router.get      ('/posts/:id', postController.findOneById);
+router.patch    ('/posts/:id', postController.update);
+router.put      ('/posts/:id', postController.update);
+router.delete   ('/posts/:id', postController.delete);
 router.get      ('/posts/', postController.findAll);
-
 
 
 

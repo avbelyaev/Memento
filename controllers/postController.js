@@ -71,10 +71,123 @@ exports.findByTitle = function (rq, rsp) {
     var title = rq.query.title;
     log.info('post ctrl findByTitle "' + title + '"');
 
-    rsp.status(501).send('NOT IMPLEMENTED');
+
+    postModel.findByTitle(title, function (err, posts) {
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (posts) {
+                ret = posts;
+            } else {
+                ret = [];
+            }
+        }
+        controllerUtils.respond(rsp, status, ret);
+    });
 };
 
 
 exports.save = function (rq, rsp) {
-    rsp.status(501).send('NOT IMPLEMENTED');
+    log.info('post ctrl save');
+    var chunks = [];
+
+    var onDataEnd = function () {
+        log.info('processing data_end event');
+
+        var rqBody;
+        try {
+            rqBody = validatorUtils.parseJSON(Buffer.concat(chunks));
+
+        } catch (e) {
+            prepareError(e);
+            controllerUtils.respond(rsp, status, e);
+            return;
+        }
+
+        postModel.save(rqBody, function (err, post) {
+            if (err) {
+                prepareError(err);
+            } else {
+
+                if (post) {
+                    ret = post;
+                } else {
+                    ret = null;
+                    status = 404;
+                }
+            }
+            controllerUtils.respond(rsp, status, ret);
+        });
+    };
+
+
+    rq.on('data', function (chunk) {
+        chunks.push(chunk);
+    });
+
+    rq.on('end', onDataEnd);
+};
+
+
+
+exports.update = function (rq, rsp) {
+    const id = rq.params.id;
+    log.info('post ctrl update by id ' + id);
+    var chunks = [];
+
+    var onDataEnd = function () {
+        log.info('processing data_end event');
+
+        var rqBody;
+        try {
+            rqBody = validatorUtils.parseJSON(Buffer.concat(chunks));
+
+        } catch (e) {
+            prepareError(e);
+            controllerUtils.respond(rsp, status, e);
+            return;
+        }
+
+        postModel.update(id, rqBody, function (err, post) {
+            if (err) {
+                prepareError(err);
+            } else {
+
+                if (post) {
+                    ret = post;
+                } else {
+                    ret = null;
+                    status = 404;
+                }
+            }
+            controllerUtils.respond(rsp, status, ret);
+        })
+    };
+
+    rq.on('data', function (chunk) {
+        chunks.push(chunk);
+    });
+
+    rq.on('end', onDataEnd);
+};
+
+
+exports.delete = function (rq, rsp) {
+    var id = rq.params.id;
+    log.info('post ctrl delete by id ' + id);
+
+    postModel.delete(id, function (err, deletedPost) {
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (deletedPost) {
+                ret = deletedPost;
+            } else {
+                status = 404;
+            }
+        }
+        controllerUtils.respond(rsp, status, ret);
+    });
 };

@@ -15,9 +15,13 @@ const InternalError     = require('../utils/errors/InternalError');
 const postSchema = Schema({
     _id: Number,
     title: { type: String, required: true },
-    meme_id: { type: Number, ref: 'meme' },
-    user_id: { type: Number, ref: 'user' },
-    text: { type: Number },
+    meme_id: { type: Number, ref: 'meme', required: true },
+    user_id: { type: Number, ref: 'user', required: true },
+    text: {
+        top_text: String,
+        mid_text: String,
+        bot_text: String
+    },
     create_datetime: { type: Date, default: Date.now() },
     rating: { type: Number, default: 0 },
     tags: [{ tag: String }]
@@ -134,13 +138,151 @@ var findOneById = function (idVal, callback) {
 };
 
 
-var findByTitle = function (title, callback) {
-    
+var findByTitle = function(title, callback) {
+    log.info('post findByTitle "' + title + '"');
+
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        findByAttr('title', title, callback);
+    }
 };
 
 
 var save = function (rqBody, callback) {
+    log.info('post model save');
 
+    if (!db.isConnected()) {
+        dbConnError(callback);
+    } else {
+
+        var post;
+        try {
+            post = new postModel(rqBody);
+        } catch(e) {
+            log.error(e.message);
+            callback(new ValidationError(e), null);
+            return;
+        }
+
+        ret = null;
+
+        return post
+            .validate()
+            .then(function () {
+
+                log.info('post data is valid. saving');
+                return post.save();
+
+            }, function (err) {
+                throw new ValidationError(err);
+            })
+            .then(function (newPost) {
+
+                if (newPost) {
+                    log.info('post has been saved');
+                    ret = newPost;
+
+                } else {
+                    throw new DocNotFoundError({message: 'new post not found'});
+                }
+            })
+            .then(function () {
+                callback(null, ret);
+            })
+            .catch(function (e) {
+                log.error('post model save err: ', e.message);
+
+                callback(e, null);
+            })
+
+    }
+};
+
+
+var update = function (idVal, rqBody, callback) {
+    log.info('post model update by id [' + idVal + ']');
+
+    var id;
+    try {
+        id = validatorUtils.validateAndConvertId(idVal);
+    } catch(e) {
+        log.error('validate and convert id err: ', e.message);
+        callback(e, null);
+        return;
+    }
+
+    if (!db.isConnected()) {
+        dbConnError(callback);
+
+    } else {
+
+        try {
+            //validate against schema
+            var tmp = new postModel(rqBody);
+        } catch(e) {
+            log.error(e.message);
+            callback(new ValidationError(e), null);
+            return;
+        }
+
+        ret = null;
+
+        return postModel
+            .update({_id: id}, {$set: rqBody})
+            .exec()
+            .then(function(affected) {
+                log.info('entries affected: ', affected);
+
+                if (0 !== affected.n) {
+                    //if any was affected then find what was it
+                    return postModel
+                        .findOne({_id: id})
+                        .exec()
+
+                } else {
+                    if (0 === affected.ok) {
+                        //0 === OK when entry can't be updated
+                        //then assume rqBody is incorrect
+                        throw new ValidationError({message: 'cannot be updated'});
+                    } else {
+                        //otherwise no doc was updated
+                        throw new DocNotFoundError({message: 'nothing was updated'});
+                    }
+                }
+            })
+            .then(function (updatedPost) {
+
+                if (updatedPost) {
+                    log.info('updated post found');
+                    ret = updatedPost;
+
+                } else {
+                    throw new DocNotFoundError({message: 'updated post not found'});
+                }
+            })
+            .then(function () {
+                callback(null, ret);
+            })
+            .catch(function (e) {
+                log.error('post model update err: ', e.message);
+
+                callback(e, null);
+            })
+
+    }
+};
+
+
+var postDelete = function (idVal, callback) {
+    log.info('post model delete by id [' + idVal + ']');
+
+    var inactivePost = {};
+    inactivePost['is_active'] = false;
+
+    log.info('try safe delete by setting is_active=false');
+    update(idVal, inactivePost, callback);
 };
 
 
@@ -148,3 +290,5 @@ exports.findAll = findAll;
 exports.findOneById = findOneById;
 exports.findByTitle = findByTitle;
 exports.save = save;
+exports.update = update;
+exports.delete = postDelete;
