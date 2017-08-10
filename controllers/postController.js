@@ -66,6 +66,10 @@ exports.findOneById = function (rq, rsp) {
     });
 };
 
+exports.findOneByIdGetMeme = function (rq, rsp) {
+    rsp.status(501).send('NOT IMPLEMENTED');
+};
+
 
 exports.findByTitle = function (rq, rsp) {
     var title = rq.query.title;

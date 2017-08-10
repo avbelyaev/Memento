@@ -6,18 +6,27 @@ const router            = express.Router();
 const memeController    = require('../memeController');
 const userController    = require('../userController');
 const postController    = require('../postController');
+const log               = require('winston');
 
 
-router.post     ('/meme/create', memeController.save);
-router.get      ('/meme/:id', memeController.findOneById);
-router.patch    ('/meme/:id', memeController.update);
-router.put      ('/meme/:id', memeController.update);
-router.delete   ('/meme/:id', memeController.delete);
+router.use(function (rq, rsp, next) {
+    log.info('Initial middleware');
+    log.info('Rq time: ' + Date.now().toLocaleTimeString());
+    next();
+});
+
+
+router.post     ('/memes/create', memeController.save);
+router.get      ('/memes/:id', memeController.findOneById);
+router.patch    ('/memes/:id', memeController.update);
+router.put      ('/memes/:id', memeController.update);
+router.delete   ('/memes/:id', memeController.delete);
 router.get      ('/memes/', memeController.findAll);
 
 
 router.post     ('/posts/create', postController.save);
 router.get      ('/posts/findByTitle', postController.findByTitle);
+router.get      ('/posts/:id/meme', postController.findOneByIdGetMeme);
 router.get      ('/posts/:id', postController.findOneById);
 router.patch    ('/posts/:id', postController.update);
 router.put      ('/posts/:id', postController.update);
