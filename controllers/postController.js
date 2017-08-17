@@ -7,6 +7,9 @@ const validatorUtils    = require('../utils/validatorUtils');
 const controllerUtils   = require('../utils/controllerUtils');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
+const AppError          = require('../utils/errors/AppError');
+const halson            = require('halson');
+
 
 //fat model, thin controller
 
@@ -25,6 +28,41 @@ function prepareError(err) {
 
     ret = err;
 }
+
+//http://blog.cloud66.com/how-to-deploy-restful-apis-using-node-express4-and-docker/
+//https://github.com/seznam/halson
+exports.prepareResource = function(rq, rsp, next) {
+    log.info('preparing halson resource');
+    var resource = rq.locals.ret;
+
+
+    if (resource instanceof AppError) {
+        log.error('error preparing resource');
+
+    } else {
+
+        resource = halson(resource)
+            .addLink('self', {
+                method: 'GET',
+                link: rq.originalUrl
+            })
+            .addLink('delete', {
+                method: 'DELETE',
+                link: rq.originalUrl
+            })
+            .addLink('update', {
+                method: 'PATCH',
+                link: rq.originalUrl
+            });
+    }
+
+    //TODO set content-type halson
+    controllerUtils.respond(rsp, rq.locals.status, resource);
+    next();
+};
+
+
+
 
 
 
@@ -48,7 +86,7 @@ exports.findAll = function (rq, rsp) {
 
 
 exports.findOneById = function (rq, rsp, next) {
-    var id = rq.query.id;
+    var id = rq.params.id;
     log.info('post ctrl findOneById ' + id);
 
     postModel.findOneById(id, function (err, singlePost) {
@@ -62,10 +100,12 @@ exports.findOneById = function (rq, rsp, next) {
                 status = 404;
             }
         }
-        controllerUtils.respond(rsp, status, ret);
-    });
 
-    next();
+        rq.locals = {};
+        rq.locals.ret = ret;
+        rq.locals.status = status;
+        next();
+    });
 };
 
 exports.findOneByIdGetMeme = function (rq, rsp) {

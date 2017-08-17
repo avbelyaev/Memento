@@ -26,3 +26,7 @@ curl -X PUT \
 
 
 curl -X DELETE http://localhost:8888/api/memes/4
+
+
+#posts
+curl -X GET http://localhost:8888/api/posts/111

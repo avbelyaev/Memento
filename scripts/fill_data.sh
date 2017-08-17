@@ -42,7 +42,6 @@ ins_post() {
             mid:            '',
             bot:            ''
         },
-        create_datetime:    '',
         rating:             0,
         tags: [{
             tag:            ''
