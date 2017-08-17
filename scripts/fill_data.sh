@@ -42,7 +42,7 @@ ins_post() {
             mid:            '',
             bot:            ''
         },
-        upload_date:        '',
+        create_datetime:    '',
         rating:             0,
         tags: [{
             tag:            ''
@@ -52,17 +52,17 @@ ins_post() {
 
 ins_ctr() {
     mongo $db_name --eval "db.counters.insert({
-        _id: 'meme_id'
+        _id: '$1'
     })"
 }
 
 echo ">>> inserting data"
 
 #ins_user 1 "anthony" "anthonybel"
-#ins_user 2 "johnny" "walker18"
+#ins_user 2 "johnny" "walker"
 #ins_user 3 "bilbo" "swaggins"
 #ins_user 4 "angela" "mercy"
-#ins_user 5 "han" "soloyolo"
+#ins_user 5 "han" "yolo"
 
 ins_meme 1 "keanu"
 ins_meme 2 "social awkward penguin"
@@ -70,12 +70,18 @@ ins_meme 3 "man of a culture"
 ins_meme 4 "sponge bob imagination"
 ins_meme 5 "one cannot simply"
 ins_meme 6 "hello there obi-van"
+ins_meme 7 "jackie chan"
 
-ins_ctr
+ins_ctr "meme_id"
+ins_ctr "post_id"
 
-#ins_post 1 "first post" 1 1 "that feeling when..."
-#ins_post 2 "tried to make meme generator" 2 1 "have no idea for memes"
-#ins_post 3 "got a girlfriend" 2 1 "no idea what to do next"
-#ins_post 4 "learning node" 3 2 "totally forgot how to c++"
-#ins_post 5 "tryin to destroy dat ring" 5 3 "y cant we use gimlis axe"
-#ins_post 6 "a wild meme appears" 6 5 "buongiorno signor kenobi"
+ins_post 1 "first post" 1 1 "that feeling when..."
+ins_post 2 "tried to make meme generator" 2 1 "have no idea for memes"
+ins_post 3 "got a girlfriend" 2 1 "no idea what to do next"
+ins_post 4 "learning node" 3 2 "totally forgot how to c++"
+ins_post 5 "tryin to destroy dat ring" 5 3 "y cant we use gimlis axe"
+ins_post 6 "a wild meme appears" 6 5 "buongiorno sinor kenobi"
+ins_post 7 "y tho" 7 1 "americans y dont u add taxes into your price tags"
+
+
+echo "inserting done"

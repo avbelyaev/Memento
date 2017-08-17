@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 curl -X POST \
-  http://localhost:8888/api/meme/create \
+  http://localhost:8888/api/memes/create \
   -H 'content-type: application/json' \
   -d '{
 	"title": "a wild meme appeared from curl",
@@ -15,14 +15,14 @@ curl -X POST \
 curl -X GET http://localhost:8888/api/memes/
 
 
-curl -X GET http://localhost:8888/api/meme/3
+curl -X GET http://localhost:8888/api/memes/3
 
 
 curl -X PUT \
-  http://localhost:8888/api/meme/5 \
+  http://localhost:8888/api/memes/5 \
   -d '{
 	"title": "another wild meme appeared and did smth"
 }'
 
 
-curl -X DELETE http://localhost:8888/api/meme/4
+curl -X DELETE http://localhost:8888/api/memes/4
