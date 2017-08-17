@@ -47,7 +47,7 @@ exports.findAll = function (rq, rsp) {
 };
 
 
-exports.findOneById = function (rq, rsp) {
+exports.findOneById = function (rq, rsp, next) {
     var id = rq.query.id;
     log.info('post ctrl findOneById ' + id);
 
@@ -64,6 +64,8 @@ exports.findOneById = function (rq, rsp) {
         }
         controllerUtils.respond(rsp, status, ret);
     });
+
+    next();
 };
 
 exports.findOneByIdGetMeme = function (rq, rsp) {

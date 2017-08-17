@@ -7,11 +7,12 @@ const memeController    = require('../memeController');
 const userController    = require('../userController');
 const postController    = require('../postController');
 const log               = require('winston');
+const AppError          = require('../../utils/errors/AppError');
 
 
 router.use(function (rq, rsp, next) {
     log.info('Initial middleware');
-    log.info('Rq time: ' + Date.now().toLocaleTimeString());
+    log.info('Rq time: ' + (new Date()).toLocaleTimeString());
     next();
 });
 
@@ -27,7 +28,7 @@ router.get      ('/memes/', memeController.findAll);
 router.post     ('/posts/create', postController.save);
 router.get      ('/posts/findByTitle', postController.findByTitle);
 router.get      ('/posts/:id/meme', postController.findOneByIdGetMeme);
-router.get      ('/posts/:id', postController.findOneById);
+router.get      ('/posts/:id', postController.findOneById, prepareResource);
 router.patch    ('/posts/:id', postController.update);
 router.put      ('/posts/:id', postController.update);
 router.delete   ('/posts/:id', postController.delete);
@@ -46,5 +47,32 @@ router.get('/', function (rq, rsp) {
     console.log('root');
     rsp.send('root');
 });
+
+
+//http://blog.cloud66.com/how-to-deploy-restful-apis-using-node-express4-and-docker/
+//https://github.com/seznam/halson
+function prepareResource(rq, rsp, next) {
+    var resource = rsp.body;
+
+    if (!resource instanceof AppError) {
+        log.info('preparing halson resource');
+
+        resource = halson(rsp)
+            .addLink('self', rq.query.path)
+            .addLink('delete', {
+                method: 'DELETE',
+                link: rq.query.path
+            })
+            .addLink('update', {
+                method: 'PATCH',
+                link: rq.query.path
+            });
+    }
+
+    rsp.send(resource);
+    //TODO or done()?
+    next();
+}
+
 
 module.exports = router;
