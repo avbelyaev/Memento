@@ -12,7 +12,7 @@ const postMw            = require('../../middlewares/postMiddleware');
 
 router.use(function (rq, rsp, next) {
     log.info('-----------------');
-    log.info('Rq time: ' + (new Date()).toLocaleTimeString());
+    log.info('<-- Rq: ' + (new Date()).toLocaleTimeString());
     next();
 });
 
@@ -32,7 +32,7 @@ router.get      ('/posts/:id', postController.findOneById, postMw.prepareResourc
 router.patch    ('/posts/:id', postController.update);
 router.put      ('/posts/:id', postController.update);
 router.delete   ('/posts/:id', postController.delete);
-router.get      ('/posts', postController.findAll);
+router.get      ('/posts', postController.findAll, postMw.prepareResource);
 
 
 

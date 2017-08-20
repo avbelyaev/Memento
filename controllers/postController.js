@@ -13,6 +13,8 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
 var status = 200, ret = null;
 
+//TODO move this into middleware executed after any response
+//to set statuses globally
 function prepareError(err) {
     log.error('meme ctrl: ', err.message);
 
@@ -27,10 +29,18 @@ function prepareError(err) {
     ret = err;
 }
 
+function callNext(next, rq, ret) {
+    rq.locals = {};
+    rq.locals.ret = ret;
+    rq.locals.status = status;
+
+    next();
+}
 
 
 
-exports.findAll = function (rq, rsp) {
+
+exports.findAll = function (rq, rsp, next) {
     log.info("post ctrl findAll");
 
     postModel.findAll(function (err, memes) {
@@ -44,7 +54,8 @@ exports.findAll = function (rq, rsp) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+
+        callNext(next, rq, ret);
     });
 };
 
@@ -65,10 +76,7 @@ exports.findOneById = function (rq, rsp, next) {
             }
         }
 
-        rq.locals = {};
-        rq.locals.ret = ret;
-        rq.locals.status = status;
-        next();
+        callNext(next, rq, ret);
     });
 };
 
