@@ -14,7 +14,8 @@ const InternalError     = require('../utils/errors/InternalError');
 
 const memeSchema = Schema({
     _id: Number,
-    title: {type: String, required: true },
+    is_active: { type: Boolean, default: true },
+    title: { type: String, required: true },
     //TODO change to Buffer
     //https://stackoverflow.com/questions/29780733/store-an-image-in-mongodb-using-node-js-express-and-mongoose
     //or encode base64
@@ -24,8 +25,7 @@ const memeSchema = Schema({
         content_type: { type: String, required: true },
     },
     upload_date: { type: Date, default: Date.now() },
-    rating: { type: Number, default: 0 },
-    is_active: {type: Boolean, default: true }
+    rating: { type: Number, default: 0 }
 }, {
     strict: 'throw' //fails on unknown fields in rqBody
 });

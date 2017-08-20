@@ -14,6 +14,7 @@ const InternalError     = require('../utils/errors/InternalError');
 
 const postSchema = Schema({
     _id: Number,
+    is_active: { type: Boolean, default: true},
     title: { type: String, required: true },
     meme_id: { type: Number, ref: 'meme', required: true },
     user_id: { type: Number, ref: 'user', required: true },
@@ -24,8 +25,11 @@ const postSchema = Schema({
     },
     create_datetime: { type: Date, default: Date.now() },
     rating: { type: Number, default: 0 },
-    tags: [{ tag: String }]
-});
+    tags: [{ tag: String }],
+    visible: { type: Boolean, default: true}
+}/*, {
+    strict: 'throw' //fails on unknown fields in rqBody
+}*/);
 
 postSchema.pre('save', function (next) {
     log.info('post_id inc');
