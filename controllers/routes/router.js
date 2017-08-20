@@ -3,10 +3,11 @@
  */
 const express           = require('express');
 const router            = express.Router();
+const log               = require('winston');
 const memeController    = require('../memeController');
 const userController    = require('../userController');
 const postController    = require('../postController');
-const log               = require('winston');
+const postMw            = require('../../middlewares/postMiddleware');
 
 
 router.use(function (rq, rsp, next) {
@@ -27,7 +28,7 @@ router.get      ('/memes', memeController.findAll);
 router.post     ('/posts/create', postController.save);
 router.get      ('/posts/findByTitle', postController.findByTitle);
 router.get      ('/posts/:id/meme', postController.findOneByIdGetMeme);
-router.get      ('/posts/:id', postController.findOneById, postController.prepareResource);
+router.get      ('/posts/:id', postController.findOneById, postMw.prepareResource);
 router.patch    ('/posts/:id', postController.update);
 router.put      ('/posts/:id', postController.update);
 router.delete   ('/posts/:id', postController.delete);

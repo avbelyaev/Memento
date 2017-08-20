@@ -7,8 +7,6 @@ const validatorUtils    = require('../utils/validatorUtils');
 const controllerUtils   = require('../utils/controllerUtils');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
-const AppError          = require('../utils/errors/AppError');
-const halson            = require('halson');
 
 
 //fat model, thin controller
@@ -28,40 +26,6 @@ function prepareError(err) {
 
     ret = err;
 }
-
-//http://blog.cloud66.com/how-to-deploy-restful-apis-using-node-express4-and-docker/
-//https://github.com/seznam/halson
-exports.prepareResource = function(rq, rsp, next) {
-    log.info('preparing halson resource');
-    var resource = rq.locals.ret;
-
-
-    if (resource instanceof AppError) {
-        log.error('error preparing resource');
-
-    } else {
-
-        resource = halson(resource)
-            .addLink('self', {
-                method: 'GET',
-                link: rq.originalUrl
-            })
-            .addLink('delete', {
-                method: 'DELETE',
-                link: rq.originalUrl
-            })
-            .addLink('update', {
-                method: 'PATCH',
-                link: rq.originalUrl
-            });
-    }
-
-    //TODO set content-type halson
-    controllerUtils.respond(rsp, rq.locals.status, resource);
-    next();
-};
-
-
 
 
 
