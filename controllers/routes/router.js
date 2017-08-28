@@ -36,11 +36,9 @@ router.get      ('/posts', postController.findAll, postMw.prepareResource);
 
 
 
+router.post     ('/users/create', userController.save);
 
-router.get('/users', function (rq, rsp) {
-    console.log("users::get");
-    rsp.status(501).send('NOT IMPLEMENTED');
-});
+router.get      ('/users', userController.findAll);
 
 
 router.get('/', function (rq, rsp) {
