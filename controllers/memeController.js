@@ -7,6 +7,7 @@ const validatorUtils    = require('../utils/validatorUtils');
 const controllerUtils   = require('../utils/controllerUtils');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
+const integrationCtrl   = require('./integrationController');
 
 //fat model, thin controller
 
@@ -89,6 +90,26 @@ exports.findByTitle = function (rq, rsp) {
     });
 };
 
+
+exports.findPostsByMeme = function (rq, rsp, next) {
+    var id = rq.params.id;
+    log.info('meme ctrl findPostsByMeme with id ' + id);
+
+    integrationCtrl.findPostsByMemeId(id, function (err, memes) {
+        //TODO move to function
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (memes) {
+                ret = memes;
+            } else {
+                ret = [];
+            }
+        }
+        controllerUtils.respond(rsp, status, ret);
+    })
+};
 
 
 exports.save = function (rq, rsp) {

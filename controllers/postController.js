@@ -80,9 +80,6 @@ exports.findOneById = function (rq, rsp, next) {
     });
 };
 
-exports.findOneByIdGetMeme = function (rq, rsp) {
-    rsp.status(501).send('NOT IMPLEMENTED');
-};
 
 
 exports.findByTitle = function (rq, rsp) {

@@ -4,6 +4,7 @@
 const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
+const errorUtils        = require('../utils/errorUtils');
 const db                = require('../db');
 const counter           = require('./counter');
 const log               = require('winston');
@@ -53,18 +54,13 @@ const postModel = mongoose.model('post', postSchema);
 
 
 
-var ret = null;
 
-function dbConnError(callback) {
-    var errMsg = 'DB connection error';
-    log.error(errMsg);
-    callback(new InternalError({message: errMsg}), null);
-}
+
 
 var findByAttr = function(attrName, attrVal, callback) {
     log.info('posts findByAttr [' + attrName + ':' + attrVal + ']');
 
-    var query = {};
+    var query = {}, ret = null;
     query[attrName] = attrVal;
 
     postModel.find(query, function (err, posts) {
@@ -84,9 +80,10 @@ var findByAttr = function(attrName, attrVal, callback) {
 
 var findAll = function (callback) {
     log.info('posts findAll');
+    var ret = null;
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         postModel.find({}, function (err, posts) {
@@ -106,7 +103,7 @@ var findAll = function (callback) {
 var findOneById = function (idVal, callback) {
     log.info('post findOneById [' + idVal + ']');
 
-    var id;
+    var id, ret = null;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
     } catch(e) {
@@ -116,7 +113,7 @@ var findOneById = function (idVal, callback) {
     }
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         return findByAttr('_id', id, function (err, postsFound) {
@@ -146,19 +143,65 @@ var findByTitle = function(title, callback) {
     log.info('post findByTitle "' + title + '"');
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         findByAttr('title', title, callback);
     }
 };
 
+var findByMemeId = function (memeIdVal, callback) {
+    log.info('post findByMemeId "' + memeIdVal + '"');
+
+    if (!db.isConnected()) {
+        errorUtils.dbConnError(callback);
+        return;
+    }
+
+    var id, ret = null;
+    try {
+        id = validatorUtils.validateAndConvertId(idVal);
+    } catch(e) {
+        log.error('validate and convert id err: ', e.message);
+        callback(e, null);
+        return;
+    }
+
+    findByAttr('meme_id', id, callback);
+};
+
+var findByUserId = function (userIdVal, callback) {
+    log.info('post findByMemeId "' + memeIdVal + '"');
+
+    if (!db.isConnected()) {
+        errorUtils.dbConnError(callback);
+        return;
+    }
+
+    var id, ret = null;
+    try {
+        id = validatorUtils.validateAndConvertId(idVal);
+    } catch(e) {
+        log.error('validate and convert id err: ', e.message);
+        callback(e, null);
+        return;
+    }
+
+    findByAttr('user_id', id, callback);
+};
+
+
+var getMeme = function (postIdVal, callback) {
+
+};
+
 
 var save = function (rqBody, callback) {
     log.info('post model save');
 
+    var ret = null;
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         var post;
@@ -208,7 +251,7 @@ var save = function (rqBody, callback) {
 var update = function (idVal, rqBody, callback) {
     log.info('post model update by id [' + idVal + ']');
 
-    var id;
+    var id, ret = null;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
     } catch(e) {
@@ -218,7 +261,7 @@ var update = function (idVal, rqBody, callback) {
     }
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
 
     } else {
 
@@ -293,6 +336,8 @@ var postDelete = function (idVal, callback) {
 exports.findAll = findAll;
 exports.findOneById = findOneById;
 exports.findByTitle = findByTitle;
+exports.findByMemeId = findByMemeId;
+exports.findByUserId = findByUserId;
 exports.save = save;
 exports.update = update;
 exports.delete = postDelete;

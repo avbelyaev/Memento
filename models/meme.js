@@ -4,6 +4,7 @@
 const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
+const errorUtils        = require('../utils/errorUtils');
 const db                = require('../db');
 const counter           = require('./counter');
 const log               = require('winston');
@@ -53,18 +54,11 @@ const memeModel = mongoose.model('meme', memeSchema);
 
 
 
-var ret = null;
-
-function dbConnError(callback) {
-    var errMsg = 'DB connection error';
-    log.error(errMsg);
-    callback(new InternalError({message: errMsg}), null);
-}
 
 var findByAttr = function(attrName, attrVal, callback) {
     log.info('memes findByAttr [' + attrName + ':' + attrVal + ']');
 
-    var query = {};
+    var query = {}, ret = null;
     query[attrName] = attrVal;
 
     memeModel.find(query, function (err, memes) {
@@ -84,9 +78,10 @@ var findByAttr = function(attrName, attrVal, callback) {
 
 var findAll = function (callback) {
     log.info('memes findAll');
+    var ret = null;
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         memeModel.find({}, function (err, memes) {
@@ -107,7 +102,7 @@ var findAll = function (callback) {
 var findOneById = function (idVal, callback) {
     log.info('meme findOneById [' + idVal + ']');
 
-    var id;
+    var id, ret = null;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
     } catch(e) {
@@ -117,11 +112,11 @@ var findOneById = function (idVal, callback) {
     }
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         return findByAttr('_id', id, function (err, memesFound) {
-            var error = ret = null;
+            var error;
 
             if (err) {
                 error = new InternalError(err);
@@ -148,7 +143,7 @@ var findByTitle = function(title, callback) {
     log.info('memes findByTitle "' + title + '"');
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         findByAttr('title', title, callback);
@@ -179,9 +174,10 @@ var findByUploadDateBetween = function(startDate, endDate, callback) {
 
 var save = function (rqBody, callback) {
     log.info('meme model save');
+    var ret = null;
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
     } else {
 
         var meme;
@@ -232,7 +228,7 @@ var save = function (rqBody, callback) {
 var update = function (idVal, rqBody, callback) {
     log.info('meme model update by id [' + idVal + ']');
 
-    var id;
+    var id, ret = null;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
     } catch(e) {
@@ -242,7 +238,7 @@ var update = function (idVal, rqBody, callback) {
     }
 
     if (!db.isConnected()) {
-        dbConnError(callback);
+        errorUtils.dbConnError(callback);
 
     } else {
 
