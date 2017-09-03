@@ -6,14 +6,20 @@
   "author": "anthony",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "~1.17.1",
+    "connect-flash": "^0.1.1",
     "express": "~4.15.3",
     "formidable": "latest",
-    "mv": "~2.1.1",
-    "body-parser": "~1.17.1",
-    "mongoose": "~4.9.8",
+    "halson": "^3.0.0",
     "jade": "^1.11.0",
+    "mongoose": "~4.9.8",
+    "mv": "~2.1.1",
+    "passport": "^0.1.18",
+    "passport-jwt": "^3.0.0",
+    "passport-local": "^0.1.6",
     "winston": "~2.3.1",
-    "halson": "^3.0.0"
+    "jsonwebtoken": "~7.4.3"
   },
   "devDependencies": {
     "nodemon": "~1.11.0",
