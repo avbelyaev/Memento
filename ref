@@ -34,3 +34,14 @@ https://habrahabr.ru/company/ruvds/blog/321104/
 https://habrahabr.ru/company/cit/blog/259987/
 
 https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+
+
+ --==// docker //==--
+docker pull alpine
+docker run alpine echo "hallo"
+docker ps -a
+docker stop <id>
+
+docker run -v $(pwd)/:/www/ -it ubuntu
+
+docker run anthony/name:tag
