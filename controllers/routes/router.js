@@ -9,7 +9,7 @@ const userController    = require('../userController');
 const postController    = require('../postController');
 const loginController   = require('../loginController');
 const postMw            = require('../../middlewares/postMiddleware');
-const userMw            = require('../../middlewares/userMiddleware');
+const authMw            = require('../../middlewares/authMiddleware');
 const bodyParser        = require('body-parser');
 var jsonParser          = bodyParser.json();
 
@@ -47,7 +47,7 @@ router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
 router.get      ('/users', userController.findAll);
 router.get      ('/users/findOneByUsername/:username',
-                    userMw.checkToken,
+                    authMw.checkToken,
                     userController.findOneByUsername);
 
 

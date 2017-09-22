@@ -1,9 +1,9 @@
 /**
  * Created by anthony on 23.09.17.
  */
-const log       = require('winston');
-const jwt       = require('jwt-simple');
-const dbConfig  = require('../config/dbConfig');
+const log           = require('winston');
+const jwt           = require('jwt-simple');
+const jwtConfig     = require('../config/jwtConfig');
 
 //TODO move token check into commonMiddleware
 exports.checkToken = function (rq, rsp, next) {
@@ -16,14 +16,14 @@ exports.checkToken = function (rq, rsp, next) {
         var auth;
         try {
             log.info('decoding jwt token');
-            auth = jwt.decode(rq.headers['x-auth'], dbConfig.secretKey);
+            auth = jwt.decode(rq.headers['x-auth'], jwtConfig.secretKey);
 
         } catch (e) {
             log.error('error decoding jwt token');
             return rsp.sendStatus(401);
         }
 
-        log.info('success. going to controller');
+        log.info('success! proceeding to controller');
         next();
     }
 };
