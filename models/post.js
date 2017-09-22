@@ -150,7 +150,7 @@ var findByTitle = function(title, callback) {
     }
 };
 
-var findByMemeId = function (memeIdVal, callback) {
+var findPostByMemeId = function (memeIdVal, callback) {
     log.info('post findByMemeId "' + memeIdVal + '"');
 
     if (!db.isConnected()) {
@@ -158,7 +158,7 @@ var findByMemeId = function (memeIdVal, callback) {
         return;
     }
 
-    var id, ret = null;
+    var id;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
     } catch(e) {
@@ -170,17 +170,17 @@ var findByMemeId = function (memeIdVal, callback) {
     findByAttr('meme_id', id, callback);
 };
 
-var findByUserId = function (userIdVal, callback) {
-    log.info('post findByMemeId "' + memeIdVal + '"');
+var findPostByUserId = function (userIdVal, callback) {
+    log.info('post findByMemeId "' + userIdVal + '"');
 
     if (!db.isConnected()) {
         errorUtils.dbConnError(callback);
         return;
     }
 
-    var id, ret = null;
+    var id;
     try {
-        id = validatorUtils.validateAndConvertId(idVal);
+        id = validatorUtils.validateAndConvertId(userIdVal);
     } catch(e) {
         log.error('validate and convert id err: ', e.message);
         callback(e, null);
@@ -191,8 +191,9 @@ var findByUserId = function (userIdVal, callback) {
 };
 
 
-var getMeme = function (postIdVal, callback) {
-
+//TODO by post or postId or just unwind post?
+var getMemeId = function (postIdVal, callback) {
+    log.info("post");
 };
 
 
@@ -336,8 +337,9 @@ var postDelete = function (idVal, callback) {
 exports.findAll = findAll;
 exports.findOneById = findOneById;
 exports.findByTitle = findByTitle;
-exports.findByMemeId = findByMemeId;
-exports.findByUserId = findByUserId;
+exports.findByMemeId = findPostByMemeId;
+exports.findByUserId = findPostByUserId;
 exports.save = save;
 exports.update = update;
 exports.delete = postDelete;
+exports.getMemeIdByost

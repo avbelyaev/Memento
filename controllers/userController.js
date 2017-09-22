@@ -72,7 +72,7 @@ exports.findOneByUsername = function (rq, rsp, next) {
     var username = rq.params.username;
     log.info('user ctrl findOneByUsername ' + username);
 
-    userModel.findByUsername(username, function (err, singleUser) {
+    userModel.findOneByUsername(username, function (err, singleUser) {
         if (err) {
             prepareError(err);
         } else {

@@ -126,8 +126,8 @@ var findOneById = function (idVal, callback) {
 };
 
 
-var findByUsername = function (usernameVal, callback) {
-    log.info('user findByUsername "' + usernameVal + '"');
+var findOneByUsername = function (usernameVal, callback) {
+    log.info('user findOneByUsername "' + usernameVal + '"');
 
     var error = null, ret = null;
     if (!db.isConnected()) {
@@ -139,7 +139,7 @@ var findByUsername = function (usernameVal, callback) {
         .exec()
         .then(function (userFound) {
             if (userFound && 1 === userFound.length) {
-                ret = userFound;
+                ret = userFound[0];
             } else {
                 ret = null;
                 error = new DocNotFoundError({
@@ -149,7 +149,7 @@ var findByUsername = function (usernameVal, callback) {
             callback(error, ret);
         })
         .catch(function (e) {
-            log.error('user model findByUsername err: ', e.message);
+            log.error('user model findOneByUsername err: ', e.message);
 
             callback(e, null);
         });
@@ -302,7 +302,7 @@ var userDelete = function (idVal, callback) {
 
 exports.findAll = findAll;
 exports.findOneById = findOneById;
-exports.findByUsername = findByUsername;
+exports.findOneByUsername = findOneByUsername;
 exports.save = save;
 exports.update = update;
 exports.delete = userDelete;
