@@ -46,7 +46,7 @@ router.patch    ('/users/:id', userController.update);
 router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
 router.get      ('/users', userController.findAll);
-router.get      ('/users/findByUsername/:username',
+router.get      ('/users/findOneByUsername/:username',
                     userMw.checkToken,
                     userController.findOneByUsername);
 

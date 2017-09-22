@@ -10,6 +10,7 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
 const bcrypt            = require('bcrypt');
 const jwt               = require('jwt-simple');
+const dbConfig          = require('../config/dbConfig');
 
 var status = 200, ret = null;
 
@@ -24,7 +25,7 @@ function prepareError(err) {
         status = 500;
     }
 
-    ret = err;
+    ret = null;
 }
 
 exports.tryLogin = function (rq, rsp, next) {
@@ -38,14 +39,34 @@ exports.tryLogin = function (rq, rsp, next) {
         rsp.sendStatus(400);
     } else {
 
-        userModel.findByUsername(username, function (err, userFound) {
+        userModel.findOneByUsername(username, function (err, userFound) {
             if (err) {
                 prepareError(err);
             } else {
-                ret = userFound;
-                log.info(userFound);
+                if (userFound) {
+
+                    bcrypt.compare(password, userFound.password, function (err1, valid) {
+                        if (err1) {
+                            prepareError(err1);
+                        } else {
+
+                            if (!valid) {
+                                log.error('password is invalid');
+                                return rsp.sendStatus(401);
+                            } else {
+
+                                var token = jwt.encode({
+                                    username: username
+                                }, dbConfig.secretKey);
+
+                                ret = token;
+                                status = 200;
+                            }
+                        }
+                        controllerUtils.respond(rsp, status, ret);
+                    });
+                }
             }
-            controllerUtils.respond(rsp, status, ret);
         });
     }
 };
