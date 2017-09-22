@@ -126,6 +126,36 @@ var findOneById = function (idVal, callback) {
 };
 
 
+var findByUsername = function (usernameVal, callback) {
+    log.info('post findByUsername "' + usernameVal);
+
+    var error = null, ret = null;
+    if (!db.isConnected()) {
+        errorUtils.dbConnError(callback);
+        return;
+    }
+
+    userModel.find({'username': usernameVal})
+        .exec()
+        .then(function (userFound) {
+            if (userFound && 1 === userFound.length) {
+                ret = userFound;
+            } else {
+                ret = null;
+                error = new DocNotFoundError({
+                    message: 'no user found or found more than one'
+                })
+            }
+            callback(error, ret);
+        })
+        .catch(function (e) {
+            log.error('user model findByUsername err: ', e.message);
+
+            callback(e, null);
+        });
+};
+
+
 var save = function (rqBody, callback) {
     log.info('user model save');
 
@@ -272,6 +302,7 @@ var userDelete = function (idVal, callback) {
 
 exports.findAll = findAll;
 exports.findOneById = findOneById;
+exports.findByUsername = findByUsername;
 exports.save = save;
 exports.update = update;
 exports.delete = userDelete;
