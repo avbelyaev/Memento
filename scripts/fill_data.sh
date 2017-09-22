@@ -73,6 +73,7 @@ ins_meme 7 "jackie chan"
 
 ins_ctr "meme_id"
 ins_ctr "post_id"
+ins_ctr "user_id"
 
 ins_post 1 "first post" 1 1 "that feeling when..."
 ins_post 2 "tried to make meme generator" 2 1 "have no idea for memes"

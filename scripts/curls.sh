@@ -12,10 +12,10 @@ curl -X POST \
 }'
 
 
-curl -X GET http://localhost:8888/api/memes/
+curl http://localhost:8888/api/memes/
 
 
-curl -X GET http://localhost:8888/api/memes/3
+curl http://localhost:8888/api/memes/3
 
 
 curl -X PUT \
@@ -29,4 +29,22 @@ curl -X DELETE http://localhost:8888/api/memes/4
 
 
 #posts
-curl -X GET http://localhost:8888/api/posts/111
+curl http://localhost:8888/api/posts/111
+
+
+
+#users
+curl -X POST \
+  http://localhost:8888/api/users/create \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -H 'postman-token: 549ce871-9243-08a0-15ef-f3fc7859b41e' \
+  -d '{
+	"first_name": "anthony",
+	"last_name": "b",
+	"username": "init_user",
+	"email": "overlord228@ya.ru",
+	"password": "qwerty"
+}'
+
+curl localhost:8888/api/users
