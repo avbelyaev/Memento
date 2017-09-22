@@ -8,6 +8,7 @@ const memeController    = require('../memeController');
 const userController    = require('../userController');
 const postController    = require('../postController');
 const postMw            = require('../../middlewares/postMiddleware');
+const userMw            = require('../../middlewares/userMiddleware');
 
 
 router.use(function (rq, rsp, next) {
@@ -42,7 +43,9 @@ router.patch    ('/users/:id', userController.update);
 router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
 router.get      ('/users', userController.findAll);
-router.get      ('/users/findByUsername/:username', userController.findOneByUsername);
+router.get      ('/users/findByUsername/:username',
+                    userMw.checkToken,
+                    userController.findOneByUsername);
 
 
 router.get('/', function (rq, rsp) {
