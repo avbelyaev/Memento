@@ -11,6 +11,7 @@ const validatorUtils    = require('../utils/validatorUtils');
 const InternalError     = require('../utils/errors/InternalError');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
+const bcrypt            = require('bcrypt');
 
 
 var userSchema = Schema({
@@ -21,8 +22,8 @@ var userSchema = Schema({
     last_name: String,
     username: { type: String, unique: true, required: true },
     email: { type: String, unique: true, required: true },
-    password_hash: { type: String, required: true },
-    salt: { type: String },
+    password: { type: String, required: true, select: false },
+    salt: { type: String, select: false },
     create_date: { type: Date, default: Date.now() }
 });
 
@@ -44,7 +45,7 @@ userSchema.pre('save', function (next) {
         });
 });
 
-userSchema.virtual('password')
+userSchema.virtual('passwordEnc')
     .get(function () {
         return this._plainPassword;
     })
@@ -148,17 +149,23 @@ var save = function (rqBody, callback) {
             .validate()
             .then(function () {
 
-                log.info('user data is valid. saving');
-                return user.save();
+                log.info('user data is valid. hashing password');
+                return bcrypt.hash(rqBody.password, 10);
 
             }, function (err) {
                 throw new ValidationError(err);
             })
-            .then(function (newPost) {
+            .then(function (hash) {
+                user.password = hash;
 
-                if (newPost) {
+                log.info('hash has been generated. saving');
+                return user.save();
+            })
+            .then(function (newUser) {
+
+                if (newUser) {
                     log.info('user has been saved');
-                    ret = newPost;
+                    ret = newUser;
 
                 } else {
                     throw new DocNotFoundError({message: 'new user not found'});
