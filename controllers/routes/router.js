@@ -7,8 +7,11 @@ const log               = require('winston');
 const memeController    = require('../memeController');
 const userController    = require('../userController');
 const postController    = require('../postController');
+const loginController   = require('../loginController');
 const postMw            = require('../../middlewares/postMiddleware');
 const userMw            = require('../../middlewares/userMiddleware');
+const bodyParser        = require('body-parser');
+var jsonParser          = bodyParser.json();
 
 
 router.use(function (rq, rsp, next) {
@@ -46,6 +49,9 @@ router.get      ('/users', userController.findAll);
 router.get      ('/users/findByUsername/:username',
                     userMw.checkToken,
                     userController.findOneByUsername);
+
+
+router.post     ('/login', jsonParser, loginController.tryLogin);
 
 
 router.get('/', function (rq, rsp) {

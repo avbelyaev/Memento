@@ -22,7 +22,7 @@ var userSchema = Schema({
     last_name: String,
     username: { type: String, unique: true, required: true },
     email: { type: String, unique: true, required: true },
-    password: { type: String, required: true, select: false },
+    password: { type: String, required: true/*, select: false */},
     salt: { type: String, select: false },
     create_date: { type: Date, default: Date.now() }
 });
@@ -127,7 +127,7 @@ var findOneById = function (idVal, callback) {
 
 
 var findByUsername = function (usernameVal, callback) {
-    log.info('post findByUsername "' + usernameVal);
+    log.info('user findByUsername "' + usernameVal + '"');
 
     var error = null, ret = null;
     if (!db.isConnected()) {
