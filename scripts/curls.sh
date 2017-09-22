@@ -42,7 +42,7 @@ curl -X POST \
   -d '{
 	"first_name": "anthony",
 	"last_name": "b",
-	"username": "init_user",
+	"username": "tokyonyquisd",
 	"email": "overlord228@ya.ru",
 	"password": "qwerty"
 }'
