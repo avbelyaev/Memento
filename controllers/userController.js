@@ -57,6 +57,7 @@ exports.findOneById = function (rq, rsp, next) {
 
             if (singleUser) {
                 ret = singleUser;
+                status = 200;
             } else {
                 status = 404;
             }
@@ -65,6 +66,27 @@ exports.findOneById = function (rq, rsp, next) {
         controllerUtils.respond(rsp, status, ret);
         //callNext(next, rq, ret);
     });
+};
+
+exports.findOneByUsername = function (rq, rsp, next) {
+    var username = rq.params.username;
+    log.info('user ctrl findOneByUsername ' + username);
+
+    userModel.findByUsername(username, function (err, singleUser) {
+        if (err) {
+            prepareError(err);
+        } else {
+
+            if (singleUser) {
+                ret = singleUser;
+                status = 200;
+            } else {
+                status = 404;
+            }
+        }
+
+        controllerUtils.respond(rsp, status, ret);
+    })
 };
 
 exports.findPostsByUser = function (rq, rsp, next) {
