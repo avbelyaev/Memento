@@ -13,14 +13,18 @@ exports.prepareUserResource = function (rq, rsp, next) {
         'Content-Type': 'application/hal+json'
     };
 
+    let objectsList = [];
+    let tmpResource = {};
     let resource = rq.locals.ret;
+
     if (resource) {
         let i = 0;
         while (i < resource.length) {
-            resource[i] = createHalson(resource[i], rq);
+            objectsList.push(createHalson(resource[i], rq));
             i++;
         }
-        resource = halson(resource)
+        tmpResource.content = objectsList;
+        resource = halson(tmpResource)
             .addLink('search', {
                 method: 'GET',
                 link: rq.baseUrl + rq.route.path
