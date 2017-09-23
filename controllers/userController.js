@@ -4,66 +4,44 @@
 const userModel         = require('../models/user');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
-const sendResponse      = require('../utils/controllerUtils').sendResponse;
+const sendResponse      = require('../utils/httpUtils').sendResponse;
+const callNext          = require('../utils/httpUtils').callNext;
 const sendError         = require('../utils/errorUtils').sendError;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
 
 
-function prepareError(err) {
-    log.error('user ctrl: ', err.message);
-
-    if (err instanceof ValidationError) {
-        status = 400;
-    } else if (err instanceof DocNotFoundError) {
-        status = 404;
-    } else {
-        status = 500;
-    }
-
-    ret = err;
-}
-
-
 exports.findAll = function (rq, rsp, next) {
     log.info("user ctrl findAll");
 
-    userModel.findAll(function (err, users) {
+    userModel.findAll(function (err, usersAll) {
         if (err) {
-            prepareError(err);
-        } else {
+            return sendError(rsp, err);
 
-            if (users) {
-                ret = users;
-            } else {
-                ret = [];
-            }
+        } else {
+            return callNext(next, rq, usersAll, 200);
         }
-        controllerUtils.sendResponse(rsp, status, ret);
     });
 };
 
 
 exports.findOneById = function (rq, rsp, next) {
-    var id = rq.params.id;
+    let id = rq.params.id;
     log.info('user ctrl findOneById ' + id);
 
     userModel.findOneById(id, function (err, singleUser) {
         if (err) {
-            prepareError(err);
-        } else {
+            return sendError(rsp, err);
 
-            if (singleUser) {
-                ret = singleUser;
-                status = 200;
+        } else {
+            if (singleUser && 1 === singleUser.length) {
+                return callNext(next, rq, singleUser, 200);
+
             } else {
-                status = 404;
+                return sendResponse(rsp, 404);
             }
         }
-
-        controllerUtils.sendResponse(rsp, status, ret);
-        //callNext(next, rq, ret);
     });
 };
 
@@ -82,7 +60,9 @@ exports.search = function (rq, rsp, next) {
         }
 
     } else {
-        return rsp.status(400).send({message: "no supported search parameters found"});
+        return rsp.status(400).send({
+            message: "no supported search parameters found"
+        });
     }
 
     userModel.search(searchParams, function (err, usersFound) {
@@ -90,21 +70,13 @@ exports.search = function (rq, rsp, next) {
             return sendError(rsp, err);
 
         } else {
-            let ret, status;
-            if (usersFound) {
-                ret = usersFound;
-                status = 200;
-
-            } else {
-                status = 404;
-            }
-            return sendResponse(rsp, status, ret);
+            return callNext(next, rq, usersFound, 200);
         }
     })
 };
 
 exports.findPostsByUser = function (rq, rsp, next) {
-    var id = rq.params.id;
+    let id = rq.params.id;
     log.info('user ctrl findPostsByUser with id' + id);
 
     integrationCtrl.findPostsByUser(id, function (err, postsByUser) {

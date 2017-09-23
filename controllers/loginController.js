@@ -4,13 +4,13 @@
 const userModel         = require('../models/user');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
-const controllerUtils   = require('../utils/controllerUtils');
+const sendResponse      = require('../utils/httpUtils').sendResponse;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
 const bcrypt            = require('bcrypt');
 const jwt               = require('jwt-simple');
-const dbConfig          = require('../config/dbConfig');
+const jwtConfig         = require('../config/jwtConfig');
 
 var status = 200, ret = null;
 
@@ -57,13 +57,13 @@ exports.tryLogin = function (rq, rsp, next) {
 
                                 var token = jwt.encode({
                                     username: username
-                                }, dbConfig.secretKey);
+                                }, jwtConfig.secretKey);
 
                                 ret = token;
                                 status = 200;
                             }
                         }
-                        controllerUtils.respond(rsp, status, ret);
+                        return sendResponse(rsp, status, ret);
                     });
                 }
             }

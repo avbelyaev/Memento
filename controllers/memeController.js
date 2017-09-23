@@ -4,7 +4,7 @@
 const memeModel         = require('../models/meme');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
-const controllerUtils   = require('../utils/controllerUtils');
+const sendResponse      = require('../utils/httpUtils').sendResponse;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
@@ -43,7 +43,7 @@ exports.findAll = function (rq, rsp) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     });
 };
 
@@ -65,7 +65,7 @@ exports.findOneById = function (rq, rsp) {
                 status = 404;
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     });
 };
 
@@ -86,7 +86,7 @@ exports.findByTitle = function (rq, rsp) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     });
 };
 
@@ -107,7 +107,7 @@ exports.findPostsByMeme = function (rq, rsp, next) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     })
 };
 
@@ -125,8 +125,7 @@ exports.save = function (rq, rsp) {
 
         } catch (e) {
             prepareError(e);
-            controllerUtils.respond(rsp, status, e);
-            return;
+            return sendResponse(rsp, status, e);
         }
 
         memeModel.save(rqBody, function (err, meme) {
@@ -142,7 +141,7 @@ exports.save = function (rq, rsp) {
                     status = 404;
                 }
             }
-            controllerUtils.respond(rsp, status, ret);
+            return sendResponse(rsp, status, ret);
         });
     };
 
@@ -170,8 +169,7 @@ exports.update = function (rq, rsp) {
 
         } catch (e) {
             prepareError(e);
-            controllerUtils.respond(rsp, status, e);
-            return;
+            return sendResponse(rsp, status, e);
         }
 
         memeModel.update(id, rqBody, function (err, meme) {
@@ -186,7 +184,7 @@ exports.update = function (rq, rsp) {
                     status = 404;
                 }
             }
-            controllerUtils.respond(rsp, status, ret);
+            return sendResponse(rsp, status, ret);
         })
     };
 
@@ -214,6 +212,6 @@ exports.delete = function (rq, rsp) {
                 status = 404;
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     });
 };

@@ -4,7 +4,7 @@
 const postModel         = require('../models/post');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
-const controllerUtils   = require('../utils/controllerUtils');
+const sendResponse      = require('../utils/httpUtils').sendResponse;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
@@ -98,7 +98,7 @@ exports.findByTitle = function (rq, rsp) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     });
 };
 
@@ -116,8 +116,7 @@ exports.save = function (rq, rsp) {
 
         } catch (e) {
             prepareError(e);
-            controllerUtils.respond(rsp, status, e);
-            return;
+            return sendResponse(rsp, status, e);
         }
 
         postModel.save(rqBody, function (err, post) {
@@ -132,7 +131,7 @@ exports.save = function (rq, rsp) {
                     status = 404;
                 }
             }
-            controllerUtils.respond(rsp, status, ret);
+            return sendResponse(rsp, status, ret);
         });
     };
 
@@ -160,8 +159,7 @@ exports.update = function (rq, rsp) {
 
         } catch (e) {
             prepareError(e);
-            controllerUtils.respond(rsp, status, e);
-            return;
+            return sendResponse(rsp, status, e);
         }
 
         postModel.update(id, rqBody, function (err, post) {
@@ -176,7 +174,7 @@ exports.update = function (rq, rsp) {
                     status = 404;
                 }
             }
-            controllerUtils.respond(rsp, status, ret);
+            return sendResponse(rsp, status, ret);
         })
     };
 
@@ -203,6 +201,6 @@ exports.delete = function (rq, rsp) {
                 status = 404;
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        return sendResponse(rsp, status, ret);
     });
 };
