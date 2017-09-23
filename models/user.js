@@ -24,7 +24,8 @@ var userSchema = Schema({
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true/*, select: false */},
     salt: { type: String, select: false },
-    create_date: { type: Date, default: Date.now() }
+    create_date: { type: Date, default: Date.now() },
+    rating: { type: Number, default: 0 }
 });
 
 userSchema.pre('save', function (next) {
@@ -61,7 +62,7 @@ userSchema.virtual('passwordEnc')
     });
 
 
-var userModel = mongoose.model('user', userSchema);
+
 
 
 
@@ -126,31 +127,25 @@ var findOneById = function (idVal, callback) {
 };
 
 
-var findOneByUsername = function (usernameVal, callback) {
-    log.info('user findOneByUsername "' + usernameVal + '"');
+var search = function (searchParams, callback) {
+    log.info('user search with params' + searchParams);
 
-    var error = null, ret = null;
+    let error, ret;
     if (!db.isConnected()) {
         errorUtils.dbConnError(callback);
         return;
     }
 
-    userModel.find({'username': usernameVal})
+    userModel.find(searchParams)
         .exec()
-        .then(function (userFound) {
-            if (userFound && 1 === userFound.length) {
-                ret = userFound[0];
-            } else {
-                ret = null;
-                error = new DocNotFoundError({
-                    message: 'no user found or found more than one'
-                })
-            }
+        .then(function (usersFound) {
+            ret = usersFound;
+
+            log.info('entries found: ', ret.length);
             callback(error, ret);
         })
         .catch(function (e) {
-            log.error('user model findOneByUsername err: ', e.message);
-
+            log.error('user model search err: ', e.message);
             callback(e, null);
         });
 };
@@ -298,11 +293,11 @@ var userDelete = function (idVal, callback) {
 };
 
 
-
+var userModel = mongoose.model('user', userSchema);
 
 exports.findAll = findAll;
 exports.findOneById = findOneById;
-exports.findOneByUsername = findOneByUsername;
+exports.search = search;
 exports.save = save;
 exports.update = update;
 exports.delete = userDelete;

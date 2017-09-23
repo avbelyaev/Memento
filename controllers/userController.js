@@ -4,13 +4,12 @@
 const userModel         = require('../models/user');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
-const controllerUtils   = require('../utils/controllerUtils');
+const sendResponse      = require('../utils/controllerUtils').sendResponse;
+const sendError         = require('../utils/errorUtils').sendError;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
 
-
-var status = 200, ret = null;
 
 function prepareError(err) {
     log.error('user ctrl: ', err.message);
@@ -41,7 +40,7 @@ exports.findAll = function (rq, rsp, next) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        controllerUtils.sendResponse(rsp, status, ret);
     });
 };
 
@@ -63,29 +62,44 @@ exports.findOneById = function (rq, rsp, next) {
             }
         }
 
-        controllerUtils.respond(rsp, status, ret);
+        controllerUtils.sendResponse(rsp, status, ret);
         //callNext(next, rq, ret);
     });
 };
 
-exports.findOneByUsername = function (rq, rsp, next) {
-    var username = rq.params.username;
-    log.info('user ctrl findOneByUsername ' + username);
+exports.search = function (rq, rsp, next) {
+    let username = rq.query.username;
+    let firstName = rq.query.firstname;
 
-    userModel.findOneByUsername(username, function (err, singleUser) {
+    let searchParams = {};
+    if (username || firstName) {
+
+        if (username) {
+            searchParams.username = username;
+        }
+        if (firstName) {
+            searchParams.firstName = firstName;
+        }
+
+    } else {
+        return rsp.status(400).send({message: "no supported search parameters found"});
+    }
+
+    userModel.search(searchParams, function (err, usersFound) {
         if (err) {
-            prepareError(err);
-        } else {
+            return sendError(rsp, err);
 
-            if (singleUser) {
-                ret = singleUser;
+        } else {
+            let ret, status;
+            if (usersFound) {
+                ret = usersFound;
                 status = 200;
+
             } else {
                 status = 404;
             }
+            return sendResponse(rsp, status, ret);
         }
-
-        controllerUtils.respond(rsp, status, ret);
     })
 };
 
@@ -104,7 +118,7 @@ exports.findPostsByUser = function (rq, rsp, next) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        controllerUtils.sendResponse(rsp, status, ret);
     });
 };
 
@@ -124,7 +138,7 @@ exports.findMemesByUser = function (rq, rsp, next) {
                 ret = [];
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        controllerUtils.sendResponse(rsp, status, ret);
     });
 };
 
@@ -142,7 +156,7 @@ exports.save = function (rq, rsp, next) {
 
         } catch (e) {
             prepareError(e);
-            controllerUtils.respond(rsp, status, e);
+            controllerUtils.sendResponse(rsp, status, e);
             return;
         }
 
@@ -159,7 +173,7 @@ exports.save = function (rq, rsp, next) {
                     status = 404;
                 }
             }
-            controllerUtils.respond(rsp, status, ret);
+            controllerUtils.sendResponse(rsp, status, ret);
         });
     };
 
@@ -186,7 +200,7 @@ exports.update = function (rq, rsp, next) {
 
         } catch (e) {
             prepareError(e);
-            controllerUtils.respond(rsp, status, e);
+            controllerUtils.sendResponse(rsp, status, e);
             return;
         }
 
@@ -202,7 +216,7 @@ exports.update = function (rq, rsp, next) {
                     status = 404;
                 }
             }
-            controllerUtils.respond(rsp, status, ret);
+            controllerUtils.sendResponse(rsp, status, ret);
         })
     };
 
@@ -229,6 +243,6 @@ exports.delete = function (rq, rsp, next) {
                 status = 404;
             }
         }
-        controllerUtils.respond(rsp, status, ret);
+        controllerUtils.sendResponse(rsp, status, ret);
     });
 };

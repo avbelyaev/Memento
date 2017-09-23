@@ -46,9 +46,9 @@ router.patch    ('/users/:id', userController.update);
 router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
 router.get      ('/users', userController.findAll);
-router.get      ('/users/findOneByUsername/:username',
+router.get      ('/users/search',
                     authMw.checkToken,
-                    userController.findOneByUsername);
+                    userController.search);
 
 
 router.post     ('/login', jsonParser, loginController.tryLogin);
