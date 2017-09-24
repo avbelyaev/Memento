@@ -57,12 +57,15 @@ const createLinkToResource = function(rq, resourceId) {
     let path = rq.route.path;
     let trimmedPath = path.startsWith('/') ? path.substring(1) : path;
     let rels = trimmedPath.split('/');
-    let relsWithoutLast = rels.slice(0, rels.length - 1);
 
-    return rq.baseUrl + '/' + relsWithoutLast.join('/') + '/' + resourceId;
+    if (1 < rels.length) {
+        rels = rels.slice(0, rels.length - 1);
+    }
+
+    return rq.baseUrl + '/' + rels.join('/') + '/' + resourceId;
 };
 
 const currentResourceRel = function (rq) {
     let path = rq.route.path;
-    return path.substring(path.lastIndexOf('/'), path.length - 1);
+    return path.substring(path.lastIndexOf('/') + 1, path.length);
 };
