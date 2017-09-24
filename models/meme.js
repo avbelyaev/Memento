@@ -5,6 +5,7 @@ const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
 const errorUtils        = require('../utils/errorUtils');
+const modelUtils        = require('../utils/modelUtils');
 const db                = require('../db');
 const counter           = require('./counter');
 const log               = require('winston');
@@ -33,7 +34,7 @@ const memeSchema = Schema({
 
 memeSchema.pre('save', function (next) {
     log.info('meme_id inc');
-    var docBeingSaved = this;
+    let docBeingSaved = this;
 
 
     counter.findByIdAndUpdate(
@@ -49,107 +50,67 @@ memeSchema.pre('save', function (next) {
     });
 });
 
-const memeModel = mongoose.model('meme', memeSchema);
 
 
 
 
 
-var findByAttr = function(attrName, attrVal, callback) {
-    log.info('memes findByAttr [' + attrName + ':' + attrVal + ']');
+const findAll = function (callback) {
+    log.info('memes findAll');
 
-    var query = {}, ret = null;
-    query[attrName] = attrVal;
+    if (!db.isConnected()) {
+        return errorUtils.dbConnError(callback);
+    }
 
-    memeModel.find(query, function (err, memes) {
+    memeModel.find({}, function (err, memes) {
         if (err) {
-            err = new InternalError(err);
-            ret = null;
+            return callback(err, memes);
 
         } else {
-            ret = memes ? memes : [];
+            log.info('entries found: ', memes.length);
+            return callback(null , memes);
         }
-        callback(err, ret);
     });
 };
 
 
 
+const findOneById = function (idVal, callback) {
+    log.info('meme findOneById ', idVal);
 
-var findAll = function (callback) {
-    log.info('memes findAll');
-    var ret = null;
-
-    if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
-
-        memeModel.find({}, function (err, memes) {
-            if (err) {
-                err = new InternalError(err);
-            } else {
-
-                log.info('entries found: ' + memes.length);
-                ret = memes ? memes : [];
-            }
-            callback(err, ret);
-        });
-    }
-};
-
-
-
-var findOneById = function (idVal, callback) {
-    log.info('meme findOneById [' + idVal + ']');
-
-    var id, ret = null;
+    let id;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
+
     } catch(e) {
-        log.error('validate and convert id err: ', e.message);
-        callback(e, null);
-        return;
+        log.error('validate/convert err: ', e.message);
+        return callback(e, null);
     }
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
+        return errorUtils.dbConnError(callback);
+    }
 
-        return findByAttr('_id', id, function (err, memesFound) {
-            var error;
+    let queryId = { _id: id };
+    return modelUtils.findByAttr(memeModel, queryId, function (err, singleMeme) {
+        if (err) {
+            return callback(err, null);
 
-            if (err) {
-                error = new InternalError(err);
+        } else {
+            let error = null, ret = null;
+
+            if (singleMeme && 1 === singleMeme.length) {
+                ret = singleMeme[0];
 
             } else {
-                if (memesFound && 1 === memesFound.length) {
-                    ret = memesFound;
-
-                } else {
-                    error = new DocNotFoundError({
-                        message: 'not found'
-                    });
-                    ret = null;
-                }
+                error = new DocNotFoundError({
+                    message: 'meme not found or found more than one'
+                });
             }
-            callback(error, ret);
-        });
-    }
+            return callback(error, ret);
+        }
+    });
 };
-
-
-
-var findByTitle = function(title, callback) {
-    log.info('memes findByTitle "' + title + '"');
-
-    if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
-
-        findByAttr('title', title, callback);
-    }
-};
-
 
 
 var findByUploadDateBetween = function(startDate, endDate, callback) {
@@ -310,9 +271,10 @@ var memeDelete = function (idVal, callback) {
 };
 
 
+const memeModel = mongoose.model('meme', memeSchema);
+
 exports.findAll = findAll;
 exports.findOneById = findOneById;
-exports.findByTitle = findByTitle;
 exports.save = save;
 exports.update = update;
 exports.delete = memeDelete;
