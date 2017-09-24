@@ -10,20 +10,34 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 exports.dbConnError = function(callback) {
     var errMsg = 'DB connection error';
     log.error(errMsg);
-    callback(new InternalError({message: errMsg}), null);
+    callback(new InternalError(errMsg), null);
 };
 
 exports.sendError = function (rsp, err) {
-    log.error('sendError: ', err.message);
+    let msg = err.message;
+    log.error('sendError: ', msg);
 
-    var status = 500;
+    let error = {};
+    error.message = err.message;
+
+    let status = 500;
+    //determine if error already wrapped in my custom error
+    let isWrappedError = false;
     if (err instanceof ValidationError) {
         status = 400;
+        isWrappedError = true;
+
     } else if (err instanceof DocNotFoundError) {
         status = 404;
+        isWrappedError = true;
+
+    } else if (err instanceof InternalError) {
+        isWrappedError = true;
     }
 
-    rsp.status(status).send({
-        message: err.message
-    });
+    if (isWrappedError && err.data) {
+        error = err.data || err.message;
+    }
+
+    rsp.status(status).send(error);
 };

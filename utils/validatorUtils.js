@@ -12,6 +12,7 @@ function isEmpty(obj) {
     return 0 === Object.keys(obj).length;
 }
 
+//TODO remove (moved to modelUtils)
 function validateAndConvertId(idVal) {
     if ('string' === typeof idVal && isValidId(idVal)) {
 

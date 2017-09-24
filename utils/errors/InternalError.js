@@ -1,4 +1,4 @@
-var AppError = require('./AppError');
+const AppError = require('./AppError');
 
 module.exports = class InternalError extends AppError {
 
