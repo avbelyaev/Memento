@@ -5,7 +5,18 @@ var AppError = require('./AppError');
 
 module.exports = class ValidationError extends AppError {
 
-    constructor(data) {
-        super('Validation error', 400, data || {});
+    constructor(payload) {
+        let msg = 'Validation error';
+        let data = {};
+
+        if (payload) {
+            if ('string' === typeof payload) {
+                msg = payload;
+
+            } else {
+                data = payload;
+            }
+        }
+        super(msg, 400, data);
     }
 };

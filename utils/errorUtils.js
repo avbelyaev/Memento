@@ -13,30 +13,36 @@ exports.dbConnError = function(callback) {
     callback(new InternalError(errMsg), null);
 };
 
-exports.sendError = function (rsp, err) {
-    let msg = err.message;
+exports.sendError = function (rsp, errRaw) {
+    let msg = errRaw.message;
     log.error('sendError: ', msg);
 
     let error = {};
-    error.message = err.message;
+    error.message = msg;
 
     let status = 500;
     //determine if error already wrapped in my custom error
     let isWrappedError = false;
-    if (err instanceof ValidationError) {
+    if (errRaw instanceof ValidationError) {
         status = 400;
         isWrappedError = true;
 
-    } else if (err instanceof DocNotFoundError) {
+    } else if (errRaw instanceof DocNotFoundError) {
         status = 404;
         isWrappedError = true;
 
-    } else if (err instanceof InternalError) {
+    } else if (errRaw instanceof InternalError) {
+        status = 500;
         isWrappedError = true;
     }
 
-    if (isWrappedError && err.data) {
-        error = err.data || err.message;
+    if (isWrappedError) {
+        if (errRaw.data && errRaw.data.message) {
+            error.message = errRaw.data.message
+
+        } else {
+            error.message = errRaw.message;
+        }
     }
 
     rsp.status(status).send(error);
