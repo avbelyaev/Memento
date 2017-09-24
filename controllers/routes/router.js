@@ -23,11 +23,15 @@ router.use(function (rq, rsp, next) {
 
 router.post     ('/memes/create', memeController.save);
 router.get      ('/memes/:id/posts', memeController.findPostsByMeme);
-router.get      ('/memes/:id', memeController.findOneById);
+router.get      ('/memes/:id',
+                    memeController.findOneById,
+                    resourceMw.prepareResource);
 router.patch    ('/memes/:id', memeController.update);
 router.put      ('/memes/:id', memeController.update);
 router.delete   ('/memes/:id', memeController.delete);
-router.get      ('/memes', memeController.findAll);
+router.get      ('/memes',
+                    memeController.findAll,
+                    resourceMw.prepareResource);
 
 
 router.post     ('/posts/create', postController.save);

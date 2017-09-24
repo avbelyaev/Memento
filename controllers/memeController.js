@@ -5,90 +5,48 @@ const memeModel         = require('../models/meme');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
 const sendResponse      = require('../utils/httpUtils').sendResponse;
+const callNext          = require('../utils/httpUtils').callNext;
+const sendError         = require('../utils/errorUtils').sendError;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
 
-//fat model, thin controller
 
-var status = 200, ret = null;
-
-function prepareError(err) {
-    log.error('meme ctrl: ', err.message);
-
-    if (err instanceof ValidationError) {
-        status = 400;
-    } else if (err instanceof DocNotFoundError) {
-        status = 404;
-    } else {
-        status = 500;
-    }
-
-    ret = err;
-}
-
-
-
-exports.findAll = function (rq, rsp) {
+exports.findAll = function (rq, rsp, next) {
     log.info("meme ctrl findAll");
 
-    memeModel.findAll(function (err, memes) {
+    memeModel.findAll(function (err, memesAll) {
         if (err) {
-            prepareError(err);
-        } else {
+            return sendError(rsp, err);
 
-            if (memes) {
-                ret = memes;
-            } else {
-                ret = [];
-            }
+        } else {
+            return callNext(next, rq, memesAll, 200);
         }
-        return sendResponse(rsp, status, ret);
     });
 };
 
 
 
 
-exports.findOneById = function (rq, rsp) {
-    var id = rq.params.id;
-    log.info('meme ctrl findById ' + id);
+exports.findOneById = function (rq, rsp, next) {
+    let id = rq.params.id;
+    log.info('meme ctrl findOneById ' + id);
 
     memeModel.findOneById(id, function (err, singleMeme) {
         if (err) {
-            prepareError(err);
-        } else {
+            return sendError(rsp, err);
 
+        } else {
             if (singleMeme) {
-                ret = singleMeme;
+                return callNext(next, rq, singleMeme, 200);
+
             } else {
-                status = 404;
+                return sendResponse(rsp, 404);
             }
         }
-        return sendResponse(rsp, status, ret);
     });
 };
 
-
-
-exports.findByTitle = function (rq, rsp) {
-    log.info('meme ctrl findByTitle');
-    var title = rq.params.title;
-
-    memeModel.findByTitle(title, function (err, memes) {
-        if (err) {
-            prepareError(err);
-        } else {
-
-            if (memes) {
-                ret = memes;
-            } else {
-                ret = [];
-            }
-        }
-        return sendResponse(rsp, status, ret);
-    });
-};
 
 
 exports.findPostsByMeme = function (rq, rsp, next) {
