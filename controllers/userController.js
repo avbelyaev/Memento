@@ -36,7 +36,7 @@ exports.findOneById = function (rq, rsp, next) {
 
         } else {
             if (singleUser && 1 === singleUser.length) {
-                return callNext(next, rq, singleUser, 200);
+                return callNext(next, rq, singleUser[0], 200);
 
             } else {
                 return sendResponse(rsp, 404);

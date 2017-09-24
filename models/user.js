@@ -8,6 +8,7 @@ const db                = require('../db');
 const counter           = require('./counter');
 const errorUtils        = require('../utils/errorUtils');
 const validatorUtils    = require('../utils/validatorUtils');
+const modelUtils        = require('../utils/modelUtils');
 const InternalError     = require('../utils/errors/InternalError');
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
@@ -65,7 +66,6 @@ userSchema.virtual('passwordEnc')
 
 
 
-
 var findAll = function (callback) {
     log.info('users findAll');
     var ret = null;
@@ -104,7 +104,10 @@ var findOneById = function (idVal, callback) {
         errorUtils.dbConnError(callback);
     } else {
 
-        return findByAttr('_id', id, function (err, postsFound) {
+        let queryId = {
+            _id: idVal
+        };
+        return modelUtils.findByAttr(userModel, queryId, function (err, postsFound) {
             var error = ret = null;
 
             if (err) {
@@ -128,7 +131,7 @@ var findOneById = function (idVal, callback) {
 
 
 var search = function (searchParams, callback) {
-    log.info('user search with params' + searchParams);
+    log.info('user search with params');
 
     let error, ret;
     if (!db.isConnected()) {

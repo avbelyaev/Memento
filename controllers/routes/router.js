@@ -43,6 +43,9 @@ router.get      ('/posts', postController.findAll, postMw.prepareResource);
 router.post     ('/users/create', userController.save);
 router.get      ('/users/:id/memes', userController.findMemesByUser);
 router.get      ('/users/:id/posts', userController.findPostsByUser);
+router.get      ('/users/:id',
+                    userController.findOneById,
+                    resourceMw.prepareResource);
 router.patch    ('/users/:id', userController.update);
 router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
