@@ -70,20 +70,18 @@ const findAll = function (callback) {
     log.info('users findAll');
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-
-    } else {
-        userModel.find({}, function (err, users) {
-            if (err) {
-                err = new InternalError(err);
-                return callback(err, null);
-
-            } else {
-                log.info('entries found: ' + users.length);
-                return callback(null, users);
-            }
-        });
+        return errorUtils.dbConnError(callback);
     }
+
+    userModel.find({}, function (err, users) {
+        if (err) {
+            return callback(err, null);
+
+        } else {
+            log.info('entries found: ' + users.length);
+            return callback(null, users);
+        }
+    });
 };
 
 
@@ -127,23 +125,42 @@ const findOneById = function (idVal, callback) {
 };
 
 
-const search = function (searchParams, callback) {
+const search = function (searchParamsRaw, callback) {
     log.info('user search with params');
 
-    let error, ret;
+    let username = searchParamsRaw.username;
+    let firstName = searchParamsRaw.firstname;
+
+    let searchParamsValidated = {};
+    if (username || firstName) {
+
+        if (username) {
+            searchParamsValidated.username = username;
+        }
+        if (firstName) {
+            searchParamsValidated.firstName = firstName;
+        }
+
+    } else {
+        let e = new ValidationError('no supported search parameters found');
+        return callback(e, null);
+    }
+
+    let error;
     if (!db.isConnected()) {
         errorUtils.dbConnError(callback);
         return;
     }
 
-    return modelUtils.findByAttr(userModel, searchParams, function (err, usersFound) {
-        if (err) {
-            return callback(err, null);
+    return modelUtils.findByAttr(userModel, searchParamsValidated,
+        function (err, usersFound) {
+            if (err) {
+                return callback(err, null);
 
-        } else {
-            return callback(error, usersFound);
-        }
-    });
+            } else {
+                return callback(error, usersFound);
+            }
+        });
 };
 
 

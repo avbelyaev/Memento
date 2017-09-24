@@ -48,27 +48,7 @@ exports.findOneById = function (rq, rsp, next) {
 
 exports.search = function (rq, rsp, next) {
     log.info('user ctrl search');
-
-    let username = rq.query.username;
-    let firstName = rq.query.firstname;
-
-    let searchParams = {};
-    if (username || firstName) {
-
-        if (username) {
-            //TODO dont expose model's params here! abstraction leak!
-            //pass whole query to model and validate it there
-            searchParams.username = username;
-        }
-        if (firstName) {
-            searchParams.firstName = firstName;
-        }
-
-    } else {
-        return sendResponse(rsp, 404, {
-            message: "no supported search parameters found"
-        });
-    }
+    let searchParams = rq.query;
 
     userModel.search(searchParams, function (err, usersFound) {
         if (err) {
