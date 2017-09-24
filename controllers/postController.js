@@ -5,100 +5,44 @@ const postModel         = require('../models/post');
 const log               = require('winston');
 const validatorUtils    = require('../utils/validatorUtils');
 const sendResponse      = require('../utils/httpUtils').sendResponse;
+const callNext          = require('../utils/httpUtils').callNext;
+const sendError         = require('../utils/errorUtils').sendError;
 const ValidationError   = require('../utils/errors/ValidationError');
 const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 
 
 //fat model, thin controller
 
-var status = 200, ret = null;
-
-//TODO move this into middleware executed after any response
-//to set statuses globally
-function prepareError(err) {
-    log.error('meme ctrl: ', err.message);
-
-    if (err instanceof ValidationError) {
-        status = 400;
-    } else if (err instanceof DocNotFoundError) {
-        status = 404;
-    } else {
-        status = 500;
-    }
-
-    ret = err;
-}
-
-function callNext(next, rq, ret) {
-    rq.locals = {};
-    rq.locals.ret = ret;
-    rq.locals.status = status;
-
-    next();
-}
-
-
-
-
 exports.findAll = function (rq, rsp, next) {
     log.info("post ctrl findAll");
 
-    postModel.findAll(function (err, memes) {
+    postModel.findAll(function (err, postsAll) {
         if (err) {
-            prepareError(err);
+            return sendError(rsp, err);
+
         } else {
-
-            if (memes) {
-                ret = memes;
-            } else {
-                ret = [];
-            }
+            return callNext(next, rq, postsAll, 200);
         }
-
-        callNext(next, rq, ret);
     });
 };
 
 
 exports.findOneById = function (rq, rsp, next) {
-    var id = rq.params.id;
-    log.info('post ctrl findOneById ' + id);
+    let id = rq.params.id;
+    log.info('post ctrl findOneById ', id);
 
     postModel.findOneById(id, function (err, singlePost) {
         if (err) {
-            prepareError(err);
-        } else {
+            return sendError(rsp, err);
 
+        } else {
             if (singlePost) {
-                ret = singlePost;
+                return callNext(next, rq, singlePost, 200);
+
             } else {
-                status = 404;
+                return sendResponse(rsp, 404);
             }
         }
-
-        callNext(next, rq, ret);
-    });
-};
-
-
-
-exports.findByTitle = function (rq, rsp) {
-    var title = rq.query.title;
-    log.info('post ctrl findByTitle "' + title + '"');
-
-
-    postModel.findByTitle(title, function (err, posts) {
-        if (err) {
-            prepareError(err);
-        } else {
-
-            if (posts) {
-                ret = posts;
-            } else {
-                ret = [];
-            }
-        }
-        return sendResponse(rsp, status, ret);
     });
 };
 

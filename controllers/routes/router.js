@@ -35,12 +35,15 @@ router.get      ('/memes',
 
 
 router.post     ('/posts/create', postController.save);
-router.get      ('/posts/findByTitle', postController.findByTitle);
-router.get      ('/posts/:id', postController.findOneById, postMw.prepareResource);
+router.get      ('/posts/:id',
+                    postController.findOneById,
+                    resourceMw.prepareResource);
 router.patch    ('/posts/:id', postController.update);
 router.put      ('/posts/:id', postController.update);
 router.delete   ('/posts/:id', postController.delete);
-router.get      ('/posts', postController.findAll, postMw.prepareResource);
+router.get      ('/posts',
+                    postController.findAll,
+                    resourceMw.prepareResource);
 
 
 router.post     ('/users/create', userController.save);

@@ -5,6 +5,7 @@ const mongoose          = require('mongoose');
 const Schema            = mongoose.Schema;
 const validatorUtils    = require('../utils/validatorUtils');
 const errorUtils        = require('../utils/errorUtils');
+const modelUtils        = require('../utils/modelUtils');
 const db                = require('../db');
 const counter           = require('./counter');
 const log               = require('winston');
@@ -50,105 +51,65 @@ postSchema.pre('save', function (next) {
         });
 });
 
-const postModel = mongoose.model('post', postSchema);
 
 
 
 
 
+const findAll = function (callback) {
+    log.info('posts findAll');
 
-var findByAttr = function(attrName, attrVal, callback) {
-    log.info('posts findByAttr [' + attrName + ':' + attrVal + ']');
+    if (!db.isConnected()) {
+        errorUtils.dbConnError(callback);
+    }
 
-    var query = {}, ret = null;
-    query[attrName] = attrVal;
-
-    postModel.find(query, function (err, posts) {
+    postModel.find({}, function (err, posts) {
         if (err) {
-            err = new InternalError(err);
-            ret = null;
+            return callback(err, null);
 
         } else {
-            ret = posts ? posts : [];
+            log.info('entries found: ' + posts.length);
+            return callback(null, posts);
         }
-        callback(err, ret);
     });
 };
 
 
+const findOneById = function (idVal, callback) {
+    log.info('post findOneById ', idVal);
 
-
-var findAll = function (callback) {
-    log.info('posts findAll');
-    var ret = null;
-
-    if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
-
-        postModel.find({}, function (err, posts) {
-            if (err) {
-                err = new InternalError(err);
-            } else {
-
-                log.info('entries found: ' + posts.length);
-                ret = posts ? posts : [];
-            }
-            callback(err, ret);
-        });
-    }
-};
-
-
-var findOneById = function (idVal, callback) {
-    log.info('post findOneById [' + idVal + ']');
-
-    var id, ret = null;
+    let id;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
+
     } catch(e) {
-        log.error('validate and convert id err: ', e.message);
-        callback(e, null);
-        return;
+        log.error('validation/convert err: ', e.message);
+        return callback(e, null);
     }
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
+        return errorUtils.dbConnError(callback);
+    }
 
-        return findByAttr('_id', id, function (err, postsFound) {
-            var error = ret = null;
+    let queryId = { _id: id };
+    modelUtils.findByAttr(postModel, queryId, function (err, singlePost) {
+        if (err) {
+            return callback(err, null);
 
-            if (err) {
-                error = new InternalError(err);
+        } else {
+            let error = null, ret = null;
+
+            if (singlePost && 1 === singlePost.length) {
+                ret = singlePost[0];
 
             } else {
-                if (postsFound && 1 === postsFound.length) {
-                    ret = postsFound;
-
-                } else {
-                    error = new DocNotFoundError({
-                        message: 'not found'
-                    });
-                    ret = null;
-                }
+                error = new DocNotFoundError('post not found or found more than one');
             }
-            callback(error, ret);
-        });
-    }
+            return callback(error, ret);
+        }
+    });
 };
 
-
-var findByTitle = function(title, callback) {
-    log.info('post findByTitle "' + title + '"');
-
-    if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
-
-        findByAttr('title', title, callback);
-    }
-};
 
 var findPostByMemeId = function (memeIdVal, callback) {
     log.info('post findByMemeId "' + memeIdVal + '"');
@@ -334,12 +295,12 @@ var postDelete = function (idVal, callback) {
 };
 
 
+const postModel = mongoose.model('post', postSchema);
+
 exports.findAll = findAll;
 exports.findOneById = findOneById;
-exports.findByTitle = findByTitle;
 exports.findByMemeId = findPostByMemeId;
 exports.findByUserId = findPostByUserId;
 exports.save = save;
 exports.update = update;
 exports.delete = postDelete;
-exports.getMemeIdByost
