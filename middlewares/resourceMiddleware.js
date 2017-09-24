@@ -18,19 +18,25 @@ exports.prepareResource = function (rq, rsp, next) {
     let resource = rq.locals.ret;
 
     if (resource) {
-        let i = 0;
-        while (i < resource.length) {
-            if (resource.hasOwnProperty(i)) {
-                objectsList.push(createHalsonForEntity(resource[i], rq));
+        if (Array.isArray(resource)) {
+
+            let i = 0;
+            while (i < resource.length) {
+                if (resource.hasOwnProperty(i)) {
+                    objectsList.push(createHalsonForEntity(resource[i], rq));
+                }
+                i++;
             }
-            i++;
+            tmpResource.content = objectsList;
+            resource = halson(tmpResource)
+                .addLink(currentResourceRel(rq), {
+                    method: rq.method,
+                    link: rq.baseUrl + rq.route.path
+                });
+
+        } else {
+            resource = createHalsonForEntity(resource, rq);
         }
-        tmpResource.content = objectsList;
-        resource = halson(tmpResource)
-            .addLink(currentResourceRel(rq), {
-                method: rq.method,
-                link: rq.baseUrl + rq.route.path
-            });
     }
 
     return sendResponse(rsp, status, resource, headers);
