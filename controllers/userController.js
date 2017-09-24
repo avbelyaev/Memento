@@ -12,6 +12,7 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const integrationCtrl   = require('./integrationController');
 
 
+//TODO remove any logic from controller and impl it in model or resource
 exports.findAll = function (rq, rsp, next) {
     log.info("user ctrl findAll");
 
@@ -35,8 +36,8 @@ exports.findOneById = function (rq, rsp, next) {
             return sendError(rsp, err);
 
         } else {
-            if (singleUser && 1 === singleUser.length) {
-                return callNext(next, rq, singleUser[0], 200);
+            if (singleUser) {
+                return callNext(next, rq, singleUser, 200);
 
             } else {
                 return sendResponse(rsp, 404);
@@ -46,6 +47,8 @@ exports.findOneById = function (rq, rsp, next) {
 };
 
 exports.search = function (rq, rsp, next) {
+    log.info('user ctrl search');
+
     let username = rq.query.username;
     let firstName = rq.query.firstname;
 
@@ -53,6 +56,8 @@ exports.search = function (rq, rsp, next) {
     if (username || firstName) {
 
         if (username) {
+            //TODO dont expose model's params here! abstraction leak!
+            //pass whole query to model and validate it there
             searchParams.username = username;
         }
         if (firstName) {
@@ -60,7 +65,7 @@ exports.search = function (rq, rsp, next) {
         }
 
     } else {
-        return rsp.status(400).send({
+        return sendResponse(rsp, 404, {
             message: "no supported search parameters found"
         });
     }

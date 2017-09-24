@@ -66,71 +66,68 @@ userSchema.virtual('passwordEnc')
 
 
 
-var findAll = function (callback) {
+const findAll = function (callback) {
     log.info('users findAll');
-    var ret = null;
 
     if (!db.isConnected()) {
         errorUtils.dbConnError(callback);
-    } else {
 
+    } else {
         userModel.find({}, function (err, users) {
             if (err) {
                 err = new InternalError(err);
-            } else {
+                return callback(err, null);
 
+            } else {
                 log.info('entries found: ' + users.length);
-                ret = users ? users : [];
+                return callback(null, users);
             }
-            callback(err, ret);
         });
     }
 };
 
 
-var findOneById = function (idVal, callback) {
-    log.info('user findOneById [' + idVal + ']');
+const findOneById = function (idVal, callback) {
+    log.info('user findOneById ', idVal);
 
-    var id, ret = null;
+    let id;
     try {
         id = validatorUtils.validateAndConvertId(idVal);
+
     } catch(e) {
-        log.error('validate and convert id err: ', e.message);
-        callback(e, null);
-        return;
+        log.error('validation/convert err: ', e.message);
+        return callback(e, null);
     }
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-    } else {
+        return errorUtils.dbConnError(callback);
+    }
 
-        let queryId = {
-            _id: idVal
-        };
-        return modelUtils.findByAttr(userModel, queryId, function (err, postsFound) {
-            var error = ret = null;
+    let queryId = {
+        _id: id
+    };
+    return modelUtils.findByAttr(userModel, queryId, function (err, singleUser) {
+        if (err) {
+            return callback(err, null);
 
-            if (err) {
-                error = new InternalError(err);
+        } else {
+            let error = null, ret = null;
+
+            if (singleUser && 1 === singleUser.length) {
+                ret = singleUser[0];
 
             } else {
-                if (postsFound && 1 === postsFound.length) {
-                    ret = postsFound;
-
-                } else {
-                    error = new DocNotFoundError({
-                        message: 'not found'
-                    });
-                    ret = null;
-                }
+                error = new DocNotFoundError({
+                    message: 'not found or found more than one'
+                });
             }
-            callback(error, ret);
-        });
-    }
+            return callback(error, ret);
+        }
+    });
 };
 
 
-var search = function (searchParams, callback) {
+const search = function (searchParams, callback) {
     log.info('user search with params');
 
     let error, ret;
@@ -139,18 +136,14 @@ var search = function (searchParams, callback) {
         return;
     }
 
-    userModel.find(searchParams)
-        .exec()
-        .then(function (usersFound) {
-            ret = usersFound;
+    return modelUtils.findByAttr(userModel, searchParams, function (err, usersFound) {
+        if (err) {
+            return callback(err, null);
 
-            log.info('entries found: ', ret.length);
-            callback(error, ret);
-        })
-        .catch(function (e) {
-            log.error('user model search err: ', e.message);
-            callback(e, null);
-        });
+        } else {
+            return callback(error, usersFound);
+        }
+    });
 };
 
 

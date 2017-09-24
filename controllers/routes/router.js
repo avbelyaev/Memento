@@ -11,8 +11,7 @@ const loginController   = require('../loginController');
 const postMw            = require('../../middlewares/postMiddleware');
 const authMw            = require('../../middlewares/authMiddleware');
 const resourceMw        = require('../../middlewares/resourceMiddleware');
-const bodyParser        = require('body-parser');
-var jsonParser          = bodyParser.json();
+const jsonParser        = require('body-parser').json;
 
 
 router.use(function (rq, rsp, next) {
@@ -41,6 +40,10 @@ router.get      ('/posts', postController.findAll, postMw.prepareResource);
 
 
 router.post     ('/users/create', userController.save);
+router.get      ('/users/search',
+                    authMw.checkToken,
+                    userController.search,
+                    resourceMw.prepareResource);
 router.get      ('/users/:id/memes', userController.findMemesByUser);
 router.get      ('/users/:id/posts', userController.findPostsByUser);
 router.get      ('/users/:id',
@@ -51,10 +54,6 @@ router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
 router.get      ('/users',
                     userController.findAll,
-                    resourceMw.prepareResource);
-router.get      ('/users/search',
-                    authMw.checkToken,
-                    userController.search,
                     resourceMw.prepareResource);
 
 
