@@ -5,8 +5,8 @@ const halson            = require('halson');
 const log               = require('winston');
 const sendResponse      = require('../utils/httpUtils').sendResponse;
 
-exports.prepareUserResource = function (rq, rsp, next) {
-    log.info('preparing user resource');
+exports.prepareResource = function (rq, rsp, next) {
+    log.info('preparing resource');
 
     let status = rq.locals.status;
     let headers = rq.locals.headers || {
@@ -20,13 +20,15 @@ exports.prepareUserResource = function (rq, rsp, next) {
     if (resource) {
         let i = 0;
         while (i < resource.length) {
-            objectsList.push(createHalson(resource[i], rq));
+            if (resource.hasOwnProperty(i)) {
+                objectsList.push(createHalsonForEntity(resource[i], rq));
+            }
             i++;
         }
         tmpResource.content = objectsList;
         resource = halson(tmpResource)
-            .addLink('search', {
-                method: 'GET',
+            .addLink(currentResourceRel(rq), {
+                method: rq.method,
                 link: rq.baseUrl + rq.route.path
             });
     }
@@ -34,23 +36,33 @@ exports.prepareUserResource = function (rq, rsp, next) {
     return sendResponse(rsp, status, resource, headers);
 };
 
-const createHalson = function(entity, rq) {
+const createHalsonForEntity = function(entity, rq) {
     let halsonEntity = halson(entity._doc)
         .addLink('self', {
             method: 'GET',
-            link: linkToId(rq, entity.id)
+            link: createLinkToResource(rq, entity.id)
         })
         .addLink('delete', {
             method: 'DELETE',
-            link: linkToId(rq, entity.id)
+            link: createLinkToResource(rq, entity.id)
         })
         .addLink('update', {
             method: 'PUT',
-            link: linkToId(rq, entity.id)
+            link: createLinkToResource(rq, entity.id)
         });
     return halsonEntity;
 };
 
-const linkToId = function(rq, endpoint) {
-    return rq.baseUrl + '/users' + '/' + endpoint;
+const createLinkToResource = function(rq, resourceId) {
+    let path = rq.route.path;
+    let trimmedPath = path.startsWith('/') ? path.substring(1) : path;
+    let rels = trimmedPath.split('/');
+    let relsWithoutLast = rels.slice(0, rels.length - 1);
+
+    return rq.baseUrl + '/' + relsWithoutLast.join('/') + '/' + resourceId;
+};
+
+const currentResourceRel = function (rq) {
+    let path = rq.route.path;
+    return path.substring(path.lastIndexOf('/'), path.length - 1);
 };
