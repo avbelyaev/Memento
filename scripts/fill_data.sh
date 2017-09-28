@@ -29,14 +29,8 @@ ins_post() {
     mongo $db_name --eval "db.posts.insert({
         _id:                $1,
         title:              '$2',
-        meme_id: {
-            type:           $3,
-            ref:            'meme'
-        },
-        user_id: {
-            type:           $4,
-            ref:            'user'
-        },
+        meme_id:            $3,
+        user_id:            $4,
         text: {
             top:            '$5',
             mid:            '',
