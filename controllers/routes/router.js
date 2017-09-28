@@ -22,46 +22,33 @@ router.use(function (rq, rsp, next) {
 
 
 router.post     ('/memes/create', memeController.save);
-router.get      ('/memes/:id/posts', memeController.findPostsByMeme);
-router.get      ('/memes/:id',
-                    memeController.findOneById,
-                    resourceMw.prepareResource);
+router.get      ('/memes/:id/posts', memeController.findPostsByMeme, resourceMw.prepareResource);
+router.get      ('/memes/:id', memeController.findOneById, resourceMw.prepareResource);
 router.patch    ('/memes/:id', memeController.update);
 router.put      ('/memes/:id', memeController.update);
 router.delete   ('/memes/:id', memeController.delete);
-router.get      ('/memes',
-                    memeController.findAll,
-                    resourceMw.prepareResource);
+router.get      ('/memes', memeController.findAll, resourceMw.prepareResource);
 
 
 router.post     ('/posts/create', postController.save);
-router.get      ('/posts/:id',
-                    postController.findOneById,
-                    resourceMw.prepareResource);
+router.get      ('/posts/:id', postController.findOneById, resourceMw.prepareResource);
 router.patch    ('/posts/:id', postController.update);
 router.put      ('/posts/:id', postController.update);
 router.delete   ('/posts/:id', postController.delete);
-router.get      ('/posts',
-                    postController.findAll,
-                    resourceMw.prepareResource);
+router.get      ('/posts', postController.findAll, resourceMw.prepareResource);
 
 
 router.post     ('/users/create', userController.save);
 router.get      ('/users/search',
                     authMw.checkToken,
-                    userController.search,
-                    resourceMw.prepareResource);
-router.get      ('/users/:id/memes', userController.findMemesByUser);
-router.get      ('/users/:id/posts', userController.findPostsByUser);
-router.get      ('/users/:id',
-                    userController.findOneById,
-                    resourceMw.prepareResource);
+                    userController.search, resourceMw.prepareResource);
+router.get      ('/users/:id/memes', userController.findMemesByUser, resourceMw.prepareResource);
+router.get      ('/users/:id/posts', userController.findPostsByUser, resourceMw.prepareResource);
+router.get      ('/users/:id', userController.findOneById, resourceMw.prepareResource);
 router.patch    ('/users/:id', userController.update);
 router.put      ('/users/:id', userController.update);
 router.delete   ('/users/:id', userController.delete);
-router.get      ('/users',
-                    userController.findAll,
-                    resourceMw.prepareResource);
+router.get      ('/users', userController.findAll, resourceMw.prepareResource);
 
 
 router.post     ('/login', jsonParser, loginController.tryLogin);

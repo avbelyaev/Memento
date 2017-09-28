@@ -50,22 +50,23 @@ exports.findOneById = function (rq, rsp, next) {
 
 
 exports.findPostsByMeme = function (rq, rsp, next) {
-    var id = rq.params.id;
-    log.info('meme ctrl findPostsByMeme with id ' + id);
+    let id = rq.params.id;
+    log.info('meme ctrl findPostsByMeme with id ', id);
 
     integrationCtrl.findPostsByMemeId(id, function (err, memes) {
-        //TODO move to function
         if (err) {
-            prepareError(err);
+            return sendError(rsp, err);
+
         } else {
+            let ret = null;
 
             if (memes) {
                 ret = memes;
             } else {
                 ret = [];
             }
+            return callNext(next, rq, ret, 200);
         }
-        return sendResponse(rsp, status, ret);
     })
 };
 

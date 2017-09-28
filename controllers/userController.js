@@ -62,40 +62,46 @@ exports.search = function (rq, rsp, next) {
 
 exports.findPostsByUser = function (rq, rsp, next) {
     let id = rq.params.id;
-    log.info('user ctrl findPostsByUser with id' + id);
+    log.info('user ctrl findPostsByUser with id', id);
 
     integrationCtrl.findPostsByUser(id, function (err, postsByUser) {
         if (err) {
-            prepareError(err);
+            return sendError(rsp, err);
+
         } else {
+            let ret = null;
 
             if (postsByUser) {
                 ret = postsByUser;
             } else {
                 ret = [];
             }
+            return callNext(next, rq, ret, 200);
         }
-        controllerUtils.sendResponse(rsp, status, ret);
     });
 };
 
 
 exports.findMemesByUser = function (rq, rsp, next) {
-    var id = rq.params.id;
-    log.info('user ctrl findMemesByUser with id' + id);
+    let id = rq.params.id;
+    log.info('user ctrl findMemesByUser with id ', id);
 
+    //TODO fix this
     integrationCtrl.findMemesByUser(id, function (err, users) {
         if (err) {
-            prepareError(err);
+            return sendError(rsp, err);
+
         } else {
+            let ret = null;
 
             if (users) {
                 ret = users;
+
             } else {
                 ret = [];
             }
+            return callNext(next, rq, ret, 200);
         }
-        controllerUtils.sendResponse(rsp, status, ret);
     });
 };
 
