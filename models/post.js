@@ -60,7 +60,7 @@ const findAll = function (callback) {
     log.info('posts findAll');
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
+        return errorUtils.dbConnError(callback);
     }
 
     postModel.find({}, function (err, posts) {
@@ -111,44 +111,48 @@ const findOneById = function (idVal, callback) {
 };
 
 
-var findPostByMemeId = function (memeIdVal, callback) {
-    log.info('post findByMemeId "' + memeIdVal + '"');
+const findPostByMemeId = function (memeIdVal, callback) {
+    log.info('post findByMemeId "', memeIdVal, '"');
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-        return;
+        return errorUtils.dbConnError(callback);
     }
 
-    var id;
+    let id;
     try {
-        id = validatorUtils.validateAndConvertId(idVal);
+        id = validatorUtils.validateAndConvertId(memeIdVal);
+
     } catch(e) {
-        log.error('validate and convert id err: ', e.message);
-        callback(e, null);
-        return;
+        log.error('validate/convert id err: ', e.message);
+        return callback(e, null);
     }
 
-    findByAttr('meme_id', id, callback);
+    let memeIdQuery = {
+        meme_id: id
+    };
+    modelUtils.findByAttr(postModel, memeIdQuery, callback);
 };
 
-var findPostByUserId = function (userIdVal, callback) {
-    log.info('post findByMemeId "' + userIdVal + '"');
+const findPostsByUserId = function (userIdVal, callback) {
+    log.info('post findPostsByUserId "', userIdVal, '"');
 
     if (!db.isConnected()) {
-        errorUtils.dbConnError(callback);
-        return;
+        return errorUtils.dbConnError(callback);
     }
 
-    var id;
+    let id;
     try {
         id = validatorUtils.validateAndConvertId(userIdVal);
+
     } catch(e) {
         log.error('validate and convert id err: ', e.message);
-        callback(e, null);
-        return;
+        return callback(e, null);
     }
 
-    findByAttr('user_id', id, callback);
+    let searchParams = {
+        user_id: userIdVal
+    };
+    modelUtils.findByAttr(postModel, searchParams, callback);
 };
 
 
@@ -300,7 +304,7 @@ const postModel = mongoose.model('post', postSchema);
 exports.findAll = findAll;
 exports.findOneById = findOneById;
 exports.findByMemeId = findPostByMemeId;
-exports.findByUserId = findPostByUserId;
+exports.findPostsByUserId = findPostsByUserId;
 exports.save = save;
 exports.update = update;
 exports.delete = postDelete;

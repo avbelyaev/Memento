@@ -104,7 +104,7 @@ const findOneById = function (idVal, callback) {
     let queryId = {
         _id: id
     };
-    return modelUtils.findByAttr(userModel, queryId, function (err, singleUser) {
+    modelUtils.findByAttr(userModel, queryId, function (err, singleUser) {
         if (err) {
             return callback(err, null);
 
@@ -115,9 +115,7 @@ const findOneById = function (idVal, callback) {
                 ret = singleUser[0];
 
             } else {
-                error = new DocNotFoundError({
-                    message: 'not found or found more than one'
-                });
+                error = new DocNotFoundError('not found or found more than one');
             }
             return callback(error, ret);
         }
