@@ -13,7 +13,12 @@ function isEmpty(obj) {
 }
 
 //TODO remove (moved to modelUtils)
-function validateAndConvertId(idVal) {
+function validateAndConvertId(id) {
+    let idVal = id;
+    if ('number' === typeof idVal) {
+        idVal = id.toString();
+    }
+
     if ('string' === typeof idVal && isValidId(idVal)) {
 
         try {

@@ -86,7 +86,6 @@ exports.findMemesByUser = function (rq, rsp, next) {
     let id = rq.params.id;
     log.info('user ctrl findMemesByUser with id ', id);
 
-    //TODO fix this
     integrationCtrl.findMemesByUser(id, function (err, users) {
         if (err) {
             return sendError(rsp, err);
@@ -108,35 +107,34 @@ exports.findMemesByUser = function (rq, rsp, next) {
 
 exports.save = function (rq, rsp, next) {
     log.info('user ctrl save');
-    var chunks = [];
+    let chunks = [];
 
-    var onDataEnd = function () {
+    let onDataEnd = function () {
         log.info('processing data_end event');
 
-        var rqBody;
+        let rqBody;
         try {
             rqBody = validatorUtils.parseJSON(Buffer.concat(chunks));
 
         } catch (e) {
-            prepareError(e);
-            controllerUtils.sendResponse(rsp, status, e);
-            return;
+            return sendError(rsp, e);
         }
 
         userModel.save(rqBody, function (err, meme) {
             if (err) {
-                prepareError(err);
-            } else {
+                return sendError(rsp, err);
 
+            } else {
+                let status = null, ret = null;
                 if (meme) {
                     ret = meme;
                     status = 201;
+
                 } else {
-                    ret = null;
                     status = 404;
                 }
+                return sendResponse(rsp, status, ret);
             }
-            controllerUtils.sendResponse(rsp, status, ret);
         });
     };
 
