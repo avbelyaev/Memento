@@ -14,6 +14,8 @@ const DocNotFoundError  = require('../utils/errors/DocNotFoundError');
 const InternalError     = require('../utils/errors/InternalError');
 
 
+const ID = '_id';
+
 const postSchema = Schema({
     _id: Number,
     is_active: { type: Boolean, default: true},
@@ -156,9 +158,18 @@ const findPostsByUserId = function (userIdVal, callback) {
 };
 
 
-//TODO by post or postId or just unwind post?
-var getMemeId = function (postIdVal, callback) {
-    log.info("post");
+// get all ids of user's posts. aggregate ids. filter unique
+// get memes where _id in [ids]. with one request only O(c),
+// not with one request for each _id O(n)    (c)Arthur@mail.ru
+const getMemeId = function (post) {
+    log.info("getMemeId(post)");
+
+    if (post.hasOwnProperty('meme_id')) {
+        return post['meme_id']
+
+    } else {
+        log.error('post[', post._id, 'has no meme_id');
+    }
 };
 
 
@@ -308,3 +319,4 @@ exports.findPostsByUserId = findPostsByUserId;
 exports.save = save;
 exports.update = update;
 exports.delete = postDelete;
+exports.getMemeId = getMemeId;

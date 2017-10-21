@@ -62,13 +62,13 @@ const findAll = function (callback) {
         return errorUtils.dbConnError(callback);
     }
 
-    memeModel.find({}, function (err, memes) {
+    memeModel.find({}, function (err, entries) {
         if (err) {
-            return callback(err, memes);
+            return callback(err, []);
 
         } else {
-            log.info('entries found: ', memes.length);
-            return callback(null , memes);
+            log.info('entries found: ', entries.length);
+            return callback(null , entries);
         }
     });
 };
@@ -108,6 +108,39 @@ const findOneById = function (idVal, callback) {
                 });
             }
             return callback(error, ret);
+        }
+    });
+};
+
+
+const findMemesWithIds = function (rawIdList, callback) {
+    log.info('meme findMemesByIds ', rawIdList);
+
+    let idList = [];
+    for (let i = 0; i < rawIdList.length; i++) {
+        try {
+            let validId = validatorUtils.validateAndConvertId(rawIdList[i]);
+            idList.push(validId);
+
+        } catch(e) {
+            // empty
+        }
+    }
+
+    if (!db.isConnected()) {
+        return errorUtils.dbConnError(callback);
+    }
+
+    let query = {
+        _id: { $in: idList }
+    };
+    return memeModel.find(query, function (err, entries) {
+        if (err) {
+            return callback(err, []);
+
+        } else {
+            log.info('entries found: ', entries.length);
+            return callback(null , entries);
         }
     });
 };
@@ -274,6 +307,7 @@ var memeDelete = function (idVal, callback) {
 const memeModel = mongoose.model('meme', memeSchema);
 
 exports.findAll = findAll;
+exports.findMemesWithIds = findMemesWithIds;
 exports.findOneById = findOneById;
 exports.save = save;
 exports.update = update;

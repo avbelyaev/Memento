@@ -1,56 +1,58 @@
 /**
  * Created by anthony on 03.09.17.
  */
-
 const log               = require('winston');
 const memeController    = require('./memeController');
 const postController    = require('./postController');
 const userController    = require('./userController');
-const postModel         = require('../models/post');
-const memeModel         = require('../models/meme');
-const userModel         = require('../models/user');
+const sendError         = require('../utils/errorUtils').sendError;
+const Post              = require('../models/post');
+const Meme              = require('../models/meme');
+const User              = require('../models/user');
 
 /*
 this controller was made to serve integrations like
 accessing model from another external controller
 in order to reduce complexity of concrete controllers
-e.g. accessing memeModel (via memeController?) from userController
+e.g. accessing Meme (via memeController?) from userController
  */
 
-var findPostsByMemeId = function (memeId, callback) {
-    log.info('integr ctrl findPostsByMeme with id ' + memeId);
+const findPostsByMemeId = function (memeId, callback) {
+    log.info('integr ctrl findPostsByMeme with id ', memeId);
 
-    postModel.findByMemeId(memeId, callback);
+    Post.findByMemeId(memeId, callback);
 };
 
 
-var findPostsByUser = function (userId, callback) {
-    log.info('integr ctrl findPostsByUser with id ' + userId);
+const findPostsByUser = function (userId, callback) {
+    log.info('integr ctrl findPostsByUser with id ', userId);
 
-    postModel.findByUserId(userId, callback);
+    Post.findPostsByUserId(userId, callback);
 };
 
 
-var findMemesByUser = function (userId, callback) {
-    log.info('integr ctrl findMemesByUser with id ' + userId);
+const findMemesByUser = function (userId, callback) {
+    log.info('integr ctrl findMemesByUser with id ', userId);
 
     //first find posts by user
-    postModel.findByUserId(userId, function (err, postsByUser) {
+    Post.findPostsByUserId(userId, function (err, postsByUser) {
         if (err) {
-            throw err; //TODO throw or handle and returnInternal err?
+            return callback(err, null);
+
         } else {
             if (postsByUser) {
-                //posts found. find memes by posts
-                //TODO there has to be a better way to accomplish this
 
-                var memesFromPosts = [];
-                for (p in postsByUser) {
+                let idsOfMemesOfPostsByUser = new Set();
+                for (let p in postsByUser) {
+                    if (postsByUser.hasOwnProperty(p)) {
 
-                    postModel.getMemeByPost(p, callback);
+                        let post = postsByUser[p];
+                        let memeId = Post.getMemeId(post._doc);
+                        idsOfMemesOfPostsByUser.add(memeId);
+                    }
                 }
-                //then...
-                //TODO how to do it async since list is empty after loop
 
+                Meme.findMemesWithIds(Array.from(idsOfMemesOfPostsByUser), callback);
 
             } else {
                 callback(err, []);
@@ -61,3 +63,4 @@ var findMemesByUser = function (userId, callback) {
 
 exports.findPostsByMemeId = findPostsByMemeId;
 exports.findPostsByUser = findPostsByUser;
+exports.findMemesByUser = findMemesByUser;
