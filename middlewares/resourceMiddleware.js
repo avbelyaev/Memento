@@ -39,6 +39,8 @@ exports.prepareResource = function (rq, rsp, next) {
         }
     }
 
+    //TODO add normalizr like Arthur suggested in Redux
+    //then we have memes, posts and user separated which is ...good ...i think
     return sendResponse(rsp, status, resource, headers);
 };
 
