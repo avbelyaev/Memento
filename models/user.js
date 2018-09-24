@@ -304,6 +304,11 @@ var userDelete = function (idVal, callback) {
 };
 
 
+const add = (a, b) => {
+    return a + b;
+};
+
+
 const userModel = mongoose.model('user', userSchema);
 
 exports.findAll = findAll;
@@ -313,3 +318,5 @@ exports.save = save;
 exports.update = update;
 exports.delete = userDelete;
 exports.userModel = userModel;
+
+exports.add = add;
